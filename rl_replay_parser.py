@@ -11,8 +11,9 @@ class ReplayParser:
     def parse(self, replay_file):
         data = {}
         # TODO: CRC, version info, other stuff
-        unknown = replay_file.read(20)
-        header_start = replay_file.read(24)
+        data['crc_check'] = replay_file.read(20)
+        data['version'] = replay_file.read(23)
+        replay_file.seek(1, 1)
 
         data['header'] = self._read_properties(replay_file)
         unknown = self._read_unknown(replay_file, 8)
