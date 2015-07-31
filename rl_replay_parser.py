@@ -19,6 +19,8 @@ class ReplayParser:
         unknown = self._read_unknown(replay_file, 8)
         data['level_info'] = self._read_level_info(replay_file)
         data['key_frames'] = self._read_key_frames(replay_file)
+        data['network_stream'] = self._read_network_stream(replay_file)
+        data['debug_strings'] = self._read_debug_strings(replay_file)
         return data
 
     def _read_properties(self, replay_file):
@@ -108,6 +110,40 @@ class ReplayParser:
             'frame': frame,
             'file_position': file_position
         }
+
+    def _read_network_stream(self, replay_file):
+        # self.debug = True
+        # print '** NETWORK STREAM **'
+        array_length = self._read_integer(replay_file, 4)
+
+        # print 'array_length', array_length
+
+        network_stream = self._read_unknown(replay_file, array_length)
+
+        # print network_stream
+
+    def _read_debug_strings(self, replay_file):
+        array_length = self._read_integer(replay_file, 4)
+        debug_strings = []
+
+        unknown = self._read_integer(replay_file, 4)
+
+        while len(debug_strings) < array_length:
+            name_length = self._read_integer(replay_file, 4)
+            player_name = self._read_string(replay_file, name_length)
+
+            debug_string_length = self._read_integer(replay_file, 4)
+            debug_string = self._read_string(replay_file, debug_string_length)
+
+            debug_strings.append({
+                'PlayerName': player_name,
+                'DebugString': debug_string,
+            })
+
+            # Seems to be some nulls and an ACK?
+            unknown = self._read_integer(replay_file, 4)
+
+        return debug_strings
 
     def _pretty_byte_string(self, bytes_read):
         return ':'.join(format(ord(x), '#04x') for x in bytes_read)
