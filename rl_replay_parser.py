@@ -24,6 +24,7 @@ class ReplayParser:
         data['goal_ticks'] = self._read_goal_ticks(replay_file)
         data['packages'] = self._read_packages(replay_file)
         data['objects'] = self._read_objects(replay_file)
+        data['name_table'] = self._read_name_table(replay_file)
         return data
 
     def _read_properties(self, replay_file):
@@ -187,6 +188,26 @@ class ReplayParser:
             objects.append(self._read_string(replay_file, string_length))
 
         return objects
+
+    def _read_name_table(self, replay_file):
+        # Skip null byte.
+        replay_file.seek(4, 1)
+
+        name_table_length = self._read_integer(replay_file, 4)
+
+        name_table = []
+
+        for x in range(name_table_length):
+            length = self._read_integer(replay_file, 4)
+            name = self._read_string(replay_file, length)
+            integer = self._read_integer(replay_file, 4)
+
+            name_table.append({
+                'Name': name,
+                'Integer': integer,
+            })
+
+        return name_table
 
     def _pretty_byte_string(self, bytes_read):
         return ':'.join(format(ord(x), '#04x') for x in bytes_read)
