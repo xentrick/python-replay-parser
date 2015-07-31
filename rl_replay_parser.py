@@ -21,6 +21,7 @@ class ReplayParser:
         data['key_frames'] = self._read_key_frames(replay_file)
         data['network_stream'] = self._read_network_stream(replay_file)
         data['debug_strings'] = self._read_debug_strings(replay_file)
+        data['goal_ticks'] = self._read_goal_ticks(replay_file)
         return data
 
     def _read_properties(self, replay_file):
@@ -140,10 +141,29 @@ class ReplayParser:
                 'DebugString': debug_string,
             })
 
-            # Seems to be some nulls and an ACK?
-            unknown = self._read_integer(replay_file, 4)
+            if len(debug_strings) < array_length:
+                # Seems to be some nulls and an ACK?
+                unknown = self._read_integer(replay_file, 4)
 
         return debug_strings
+
+    def _read_goal_ticks(self, replay_file):
+        goal_ticks = []
+
+        num_goals = self._read_integer(replay_file, 4)
+
+        for x in range(num_goals):
+            length = self._read_integer(replay_file, 4)
+            team = self._read_string(replay_file, length)
+            frame = self._read_integer(replay_file, 4)
+
+            goal_ticks.append({
+                'Team': team,
+                'frame': frame,
+            })
+
+        return goal_ticks
+
 
     def _pretty_byte_string(self, bytes_read):
         return ':'.join(format(ord(x), '#04x') for x in bytes_read)
