@@ -22,6 +22,7 @@ class ReplayParser:
         data['network_stream'] = self._read_network_stream(replay_file)
         data['debug_strings'] = self._read_debug_strings(replay_file)
         data['goal_ticks'] = self._read_goal_ticks(replay_file)
+        data['packages'] = self._read_packages(replay_file)
         return data
 
     def _read_properties(self, replay_file):
@@ -163,6 +164,17 @@ class ReplayParser:
             })
 
         return goal_ticks
+
+    def _read_packages(self, replay_file):
+        num_packages = self._read_integer(replay_file, 4)
+
+        packages = []
+
+        for x in range(num_packages):
+            string_length = self._read_integer(replay_file, 4)
+            packages.append(self._read_string(replay_file, string_length))
+
+        return packages
 
 
     def _pretty_byte_string(self, bytes_read):
