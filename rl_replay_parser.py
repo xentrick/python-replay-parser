@@ -2,7 +2,9 @@ import pprint
 import sys
 import struct
 
+
 class ReplayParser:
+
     def __init__(self, debug=False):
         self.debug = debug
 
@@ -29,20 +31,25 @@ class ReplayParser:
                 return results
 
     def _read_property(self, replay_file):
-        if self.debug: print("Reading name")
+        if self.debug:
+            print("Reading name")
         name_length = self._read_integer(replay_file, 4)
         property_name = self._read_string(replay_file, name_length)
-        if self.debug: print("Property name: {}".format(property_name))
+        if self.debug:
+            print("Property name: {}".format(property_name))
 
         if property_name == 'None':
             return None
 
-        if self.debug: print("Reading type")
+        if self.debug:
+            print("Reading type")
         type_length = self._read_integer(replay_file, 4)
         type_name = self._read_string(replay_file, type_length)
-        if self.debug: print("Type name: {}".format(type_name))
+        if self.debug:
+            print("Type name: {}".format(type_name))
 
-        if self.debug: print("Reading value")
+        if self.debug:
+            print("Reading value")
         if type_name == 'IntProperty':
             value_length = self._read_integer(replay_file, 8)
             value = self._read_integer(replay_file, value_length)
@@ -68,9 +75,10 @@ class ReplayParser:
                 for x in range(array_length)
             ]
 
-        if self.debug: print("Value: {}".format(value))
+        if self.debug:
+            print("Value: {}".format(value))
 
-        return { 'name' : property_name, 'value': value}
+        return {'name': property_name, 'value': value}
 
     def _read_level_info(self, replay_file):
         map_names = []
@@ -95,9 +103,9 @@ class ReplayParser:
         frame = self._read_integer(replay_file, 4)
         file_position = self._read_integer(replay_file, 4)
         return {
-            'time' : time,
-            'frame' : frame,
-            'file_position' : file_position
+            'time': time,
+            'frame': frame,
+            'file_position': file_position
         }
 
     def _pretty_byte_string(self, bytes_read):
@@ -123,9 +131,11 @@ class ReplayParser:
             }[length]
 
         bytes_read = replay_file.read(length)
-        if self.debug: self._print_bytes(bytes_read)
+        if self.debug:
+            self._print_bytes(bytes_read)
         value = struct.unpack(number_format, bytes_read)[0]
-        if self.debug: print("Integer read: {}".format(value))
+        if self.debug:
+            print("Integer read: {}".format(value))
         return value
 
     def _read_float(self, replay_file, length):
@@ -134,19 +144,23 @@ class ReplayParser:
             8: '<d'
         }[length]
         bytes_read = replay_file.read(length)
-        if self.debug: self._print_bytes(bytes_read)
+        if self.debug:
+            self._print_bytes(bytes_read)
         value = struct.unpack(number_format, bytes_read)[0]
-        if self.debug: print ("Float read: {}".format(value))
+        if self.debug:
+            print("Float read: {}".format(value))
         return value
 
     def _read_unknown(self, replay_file, num_bytes):
         bytes_read = replay_file.read(num_bytes)
-        if self.debug: self._print_bytes(bytes_read)
+        if self.debug:
+            self._print_bytes(bytes_read)
         return bytes_read
 
     def _read_string(self, replay_file, length):
         bytes_read = replay_file.read(length)[0:-1]
-        if self.debug: self._print_bytes(bytes_read)
+        if self.debug:
+            self._print_bytes(bytes_read)
         return bytes_read
 
     def _sniff_bytes(self, replay_file, size):
