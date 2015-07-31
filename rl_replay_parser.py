@@ -25,6 +25,7 @@ class ReplayParser:
         data['packages'] = self._read_packages(replay_file)
         data['objects'] = self._read_objects(replay_file)
         data['name_table'] = self._read_name_table(replay_file)
+        data['class_index_map'] = self._read_class_index_map(replay_file)
         return data
 
     def _read_properties(self, replay_file):
@@ -208,6 +209,22 @@ class ReplayParser:
             })
 
         return name_table
+
+    # XXX: This is a bit iffy. Check how it works.
+    def _read_class_index_map(self, replay_file):
+        class_index_map = []
+
+        # Read to EOF.
+        while True:
+            try:
+                class_index_map.append(
+                    (self._read_integer(replay_file, 4), self._read_integer(replay_file, 4),)
+                )
+            except Exception as e:
+                print e.message
+                break
+
+        return class_index_map
 
     def _pretty_byte_string(self, bytes_read):
         return ':'.join(format(ord(x), '#04x') for x in bytes_read)
