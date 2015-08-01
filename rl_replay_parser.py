@@ -26,6 +26,8 @@ class ReplayParser:
         data['objects'] = self._read_objects(replay_file)
         data['name_table'] = self._read_name_table(replay_file)
         data['class_index_map'] = self._read_class_index_map(replay_file)
+        data['class_net_cache_map'] = self._read_class_net_cache_map(replay_file)
+        data['network_stream'] = self._process_network_stream(data['network_stream'])
         return data
 
     def _read_properties(self, replay_file):
@@ -191,43 +193,55 @@ class ReplayParser:
         return objects
 
     def _read_name_table(self, replay_file):
-        # Skip null byte.
-        replay_file.seek(4, 1)
-
         name_table_length = self._read_integer(replay_file, 4)
 
-        name_table = []
+        if name_table_length == 0:
+            return []
+        else:
+            # We haven't had this situation yet.
+            raise Exception('Name table length was not 0.')
+            return []
 
-        for x in range(name_table_length):
+    # XXX: This is a bit iffy. Check how it works.
+    def _read_class_index_map(self, replay_file):
+        class_index_map_length = self._read_integer(replay_file, 4)
+
+        class_index_map = {}
+
+        for x in range(class_index_map_length):
             length = self._read_integer(replay_file, 4)
             name = self._read_string(replay_file, length)
             integer = self._read_integer(replay_file, 4)
 
-            name_table.append({
-                'Name': name,
-                'Integer': integer,
-            })
+            class_index_map[integer] = name
 
-        return name_table
+        return class_index_map
 
-    # XXX: This is a bit iffy. Check how it works.
-    def _read_class_index_map(self, replay_file):
-        class_index_map = []
+    def _read_class_net_cache_map(self, replay_file):
+        class_net_cache_map = []
 
         # Read to EOF.
         while True:
             try:
-                class_index_map.append(
+                class_net_cache_map.append(
                     (self._read_integer(replay_file, 4), self._read_integer(replay_file, 4),)
                 )
             except Exception as e:
                 print e.message
                 break
 
-        return class_index_map
+        return class_net_cache_map
+
+    def _read_bit(self, string, index):
+        i, j = divmod(index, 8)
+
+        if ord(string[i]) & (1 << j):
+            return 1
+        else:
+            return 0
 
     def _pretty_byte_string(self, bytes_read):
-        return ':'.join(format(ord(x), '#04x') for x in bytes_read)
+        return ' '.join("{:02x}".format(ord(x)) for x in bytes_read)
 
     def _print_bytes(self, bytes_read):
         print('Hex read: {}'.format(self._pretty_byte_string(bytes_read)))
@@ -285,11 +299,14 @@ class ReplayParser:
         b = self._read_unknown(replay_file, size)
         print("**** BYTES ****")
         print("Bytes: {}".format(self._pretty_byte_string(b)))
+        print 'Size:', size
         if size == 2:
             print("Short: Signed: {} Unsigned: {}".format(struct.unpack('<h', b), struct.unpack('<H', b)))
         else:
-            print("Integer: Signed: {}, Unsigned: {}".format(struct.unpack('<i', b), struct.unpack('<I', b)))
-            print("Float: {}".format(struct.unpack('<f', b)))
+            if size == 4:
+                print("Integer: Signed: {}, Unsigned: {}".format(struct.unpack('<i', b), struct.unpack('<I', b)))
+                print("Float: {}".format(struct.unpack('<f', b)))
+            print("String: {}".format(b))
 
 
 if __name__ == '__main__':
@@ -300,6 +317,7 @@ if __name__ == '__main__':
     with open(filename, 'rb') as replay_file:
         results = ReplayParser(debug=False).parse(replay_file)
         try:
-            pprint.pprint(results)
-        except IOError as e:
+            # pprint.pprint(results)
             pass
+        except IOError as e:
+            print e
