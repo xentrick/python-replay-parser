@@ -232,6 +232,32 @@ class ReplayParser:
 
         return class_net_cache_map
 
+    def _debug_bits(self, replay_file, labels=None):
+        byte = replay_file.read(1)
+        output = ()
+
+        for index in xrange(8):
+            i, j = divmod(index, 8)
+
+            if ord(byte[i]) & (1 << j):
+                value = '1'
+            else:
+                value = '0'
+
+            formatted = value.rjust(index+1, '.').ljust(8, '.')
+            output = output + (int(value),)
+
+            if labels and len(labels) == 8:
+                print '{} = {}: {}'.format(
+                    formatted,
+                    labels[index],
+                    'Set' if formatted == '1' else 'Not set',
+                )
+            else:
+                print value.rjust(index+1, '.').ljust(8, '.')
+
+        return output
+
     def _read_bit(self, string, index):
         i, j = divmod(index, 8)
 
