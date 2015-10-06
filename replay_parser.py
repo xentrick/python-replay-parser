@@ -27,7 +27,7 @@ class ReplayParser:
         data['name_table'] = self._read_name_table(replay_file)
         data['class_index_map'] = self._read_class_index_map(replay_file)
         data['class_net_cache_map'] = self._read_class_net_cache_map(replay_file)
-        data['network_stream'] = self._process_network_stream(data['network_stream'])
+        # data['network_stream'] = self._process_network_stream(data['network_stream'])
         return data
 
     def _read_properties(self, replay_file):
