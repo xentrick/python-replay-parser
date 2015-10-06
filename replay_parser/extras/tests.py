@@ -1,4 +1,4 @@
-from rl_replay_parser import ReplayParser
+from ..replay_parser import ReplayParser
 
 import os
 import unittest

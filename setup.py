@@ -2,10 +2,12 @@
 # coding: utf-8
 from setuptools import setup
 
+from replay_parser import VERSION
+
 
 setup(
     name="rocket-league-replay-parser",
-    version="0.1",
+    version='.'.join(VERSION),
     url="https://github.com/danielsamuels/rocket-league-replay-parser",
     author="Daniel Samuels",
     author_email="daniel.samuels1@gmail.com",
