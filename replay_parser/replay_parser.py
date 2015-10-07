@@ -28,6 +28,13 @@ class ReplayParser:
         replay_file.seek(1, 1)
 
         data['header'] = self._read_properties(replay_file)
+
+        if 'Team0Score' not in data['header']:
+            data['header']['Team0Score'] = 0
+
+        if 'Team1Score' not in data['header']:
+            data['header']['Team1Score'] = 0
+
         self.number_of_goals = data['header']['Team0Score'] + data['header']['Team1Score']
 
         if self.number_of_goals == 0 and 'Goals' not in data['header']:
