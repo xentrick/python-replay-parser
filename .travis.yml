@@ -11,7 +11,7 @@ matrix:
     - python: "pypy"
 sudo: false
 install:
-    - pip install coveralls
+    - pip install coveralls six
 script: coverage run --source=replay_parser -m unittest discover
 after_success:
   - coveralls
