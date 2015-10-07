@@ -1,4 +1,3 @@
-import pprint
 import sys
 import struct
 
@@ -16,17 +15,31 @@ class ReplayParser:
         replay_file.seek(1, 1)
 
         data['header'] = self._read_properties(replay_file)
+        self.number_of_goals = data['header']['Team0Score'] + data['header']['Team1Score']
+        assert self.number_of_goals == len(data['header']['Goals'])
+
         unknown = self._read_unknown(replay_file, 8)
+
         data['level_info'] = self._read_level_info(replay_file)
+
         data['key_frames'] = self._read_key_frames(replay_file)
+
         data['network_stream'] = self._read_network_stream(replay_file)
+
         data['debug_strings'] = self._read_debug_strings(replay_file)
+
         data['goal_ticks'] = self._read_goal_ticks(replay_file)
+
         data['packages'] = self._read_packages(replay_file)
+
         data['objects'] = self._read_objects(replay_file)
+
         data['name_table'] = self._read_name_table(replay_file)
+
         data['class_index_map'] = self._read_class_index_map(replay_file)
+
         data['class_net_cache_map'] = self._read_class_net_cache_map(replay_file)
+
         # data['network_stream'] = self._process_network_stream(data['network_stream'])
         return data
 
@@ -35,6 +48,7 @@ class ReplayParser:
 
         while True:
             property_info = self._read_property(replay_file)
+
             if property_info:
                 results[property_info['name']] = property_info['value']
             else:
@@ -43,8 +57,11 @@ class ReplayParser:
     def _read_property(self, replay_file):
         if self.debug:
             print("Reading name")
+
         name_length = self._read_integer(replay_file, 4)
+
         property_name = self._read_string(replay_file, name_length)
+
         if self.debug:
             print("Property name: {}".format(property_name))
 
@@ -53,27 +70,39 @@ class ReplayParser:
 
         if self.debug:
             print("Reading type")
+
         type_length = self._read_integer(replay_file, 4)
         type_name = self._read_string(replay_file, type_length)
+
         if self.debug:
             print("Type name: {}".format(type_name))
 
         if self.debug:
             print("Reading value")
+
         if type_name == 'IntProperty':
             value_length = self._read_integer(replay_file, 8)
             value = self._read_integer(replay_file, value_length)
+
         elif type_name == 'StrProperty':
             unknown = self._read_integer(replay_file, 8)
             length = self._read_integer(replay_file, 4)
-            value = self._read_string(replay_file, length)
+
+            if length < 0:
+                length = abs(length) * 2
+                value = self._read_string(replay_file, length)[:-1].decode('utf-16')
+            else:
+                value = self._read_string(replay_file, length)
+
         elif type_name == 'FloatProperty':
             length = self._read_integer(replay_file, 8)
             value = self._read_float(replay_file, length)
+
         elif type_name == 'NameProperty':
             unknown = self._read_integer(replay_file, 8)
             length = self._read_integer(replay_file, 4)
             value = self._read_string(replay_file, length)
+
         elif type_name == 'ArrayProperty':
             # I imagine that this is the length of bytes that the data
             # in the "array" actually take up in the file.
@@ -93,6 +122,7 @@ class ReplayParser:
     def _read_level_info(self, replay_file):
         map_names = []
         number_of_maps = self._read_integer(replay_file, 4)
+
         for x in range(number_of_maps):
             map_name_length = self._read_integer(replay_file, 4)
             map_name = self._read_string(replay_file, map_name_length)
@@ -102,16 +132,19 @@ class ReplayParser:
 
     def _read_key_frames(self, replay_file):
         number_of_key_frames = self._read_integer(replay_file, 4)
+
         key_frames = [
             self._read_key_frame(replay_file)
             for x in range(number_of_key_frames)
         ]
+
         return key_frames
 
     def _read_key_frame(self, replay_file):
         time = self._read_float(replay_file, 4)
         frame = self._read_integer(replay_file, 4)
         file_position = self._read_integer(replay_file, 4)
+
         return {
             'time': time,
             'frame': frame,
@@ -119,18 +152,16 @@ class ReplayParser:
         }
 
     def _read_network_stream(self, replay_file):
-        # self.debug = True
-        # print '** NETWORK STREAM **'
         array_length = self._read_integer(replay_file, 4)
-
-        # print 'array_length', array_length
 
         network_stream = self._read_unknown(replay_file, array_length)
 
-        # print network_stream
-
     def _read_debug_strings(self, replay_file):
         array_length = self._read_integer(replay_file, 4)
+
+        if array_length == 0:
+            return []
+
         debug_strings = []
 
         unknown = self._read_integer(replay_file, 4)
@@ -157,6 +188,9 @@ class ReplayParser:
         goal_ticks = []
 
         num_goals = self._read_integer(replay_file, 4)
+
+        if num_goals != self.number_of_goals:
+            raise Exception("Number of goals is incorrect at offset {}.".format(replay_file.tell() - 4))
 
         for x in range(num_goals):
             length = self._read_integer(replay_file, 4)
@@ -301,31 +335,42 @@ class ReplayParser:
             4: '<f',
             8: '<d'
         }[length]
+
         bytes_read = replay_file.read(length)
+
         if self.debug:
             self._print_bytes(bytes_read)
+
         value = struct.unpack(number_format, bytes_read)[0]
+
         if self.debug:
             print("Float read: {}".format(value))
+
         return value
 
     def _read_unknown(self, replay_file, num_bytes):
         bytes_read = replay_file.read(num_bytes)
+
         if self.debug:
             self._print_bytes(bytes_read)
+
         return bytes_read
 
     def _read_string(self, replay_file, length):
         bytes_read = replay_file.read(length)[0:-1]
+
         if self.debug:
             self._print_bytes(bytes_read)
+
         return bytes_read
 
     def _sniff_bytes(self, replay_file, size):
         b = self._read_unknown(replay_file, size)
+
         print("**** BYTES ****")
         print("Bytes: {}".format(self._pretty_byte_string(b)))
         print 'Size:', size
+
         if size == 2:
             print("Short: Signed: {} Unsigned: {}".format(struct.unpack('<h', b), struct.unpack('<H', b)))
         else:
@@ -341,9 +386,12 @@ if __name__ == '__main__':
         sys.exit('Filename {} does not appear to be a valid replay file'.format(filename))
 
     with open(filename, 'rb') as replay_file:
-        results = ReplayParser(debug=False).parse(replay_file)
         try:
-            # pprint.pprint(results)
-            pass
+            results = ReplayParser(debug=False).parse(replay_file)
+            print results
         except IOError as e:
+            print e
+        except struct.error as e:
+            print e
+        except Exception as e:
             print e
