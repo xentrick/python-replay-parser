@@ -222,3 +222,115 @@ class TestReplayParser(unittest.TestCase):
         data.seek(0)
         response = parser._read_integer(data, 8, signed=False)
         self.assertEqual(response, 578437695752307201)
+
+    def test_sniff_bytes_0_bytes(self):
+        parser = ReplayParser()
+
+        data = StringIO()
+        data.write('')
+
+        stdout = sys.stdout
+        sys.stdout = StringIO()
+
+        data.seek(0)
+        parser._sniff_bytes(data, 0)
+
+        output = sys.stdout.getvalue()
+        sys.stdout.close()
+        sys.stdout = stdout
+
+        self.assertEqual(output, """**** BYTES ****
+Bytes: \n\
+('Size:', 0)
+String: \n\
+""")
+
+    def test_sniff_bytes_1_byte(self):
+        parser = ReplayParser()
+
+        data = StringIO()
+        data.write('\x31')
+
+        stdout = sys.stdout
+        sys.stdout = StringIO()
+
+        data.seek(0)
+        parser._sniff_bytes(data, 1)
+
+        output = sys.stdout.getvalue()
+        sys.stdout.close()
+        sys.stdout = stdout
+
+        self.assertEqual(output, """**** BYTES ****
+Bytes: 31
+('Size:', 1)
+String: 1
+""")
+
+    def test_sniff_bytes_2_bytes(self):
+        parser = ReplayParser()
+
+        data = StringIO()
+        data.write('\x31\x32')
+
+        stdout = sys.stdout
+        sys.stdout = StringIO()
+
+        data.seek(0)
+        parser._sniff_bytes(data, 2)
+
+        output = sys.stdout.getvalue()
+        sys.stdout.close()
+        sys.stdout = stdout
+
+        self.assertEqual(output, """**** BYTES ****
+Bytes: 31 32
+('Size:', 2)
+Short: Signed: (12849,) Unsigned: (12849,)
+""")
+
+    def test_sniff_bytes_3_bytes(self):
+        parser = ReplayParser()
+
+        data = StringIO()
+        data.write('\x31\x32\x33')
+
+        stdout = sys.stdout
+        sys.stdout = StringIO()
+
+        data.seek(0)
+        parser._sniff_bytes(data, 3)
+
+        output = sys.stdout.getvalue()
+        sys.stdout.close()
+        sys.stdout = stdout
+
+        self.assertEqual(output, """**** BYTES ****
+Bytes: 31 32 33
+('Size:', 3)
+String: 123
+""")
+
+    def test_sniff_bytes_4_bytes(self):
+        parser = ReplayParser()
+
+        data = StringIO()
+        data.write('\x31\x32\x33\x34')
+
+        stdout = sys.stdout
+        sys.stdout = StringIO()
+
+        data.seek(0)
+        parser._sniff_bytes(data, 4)
+
+        output = sys.stdout.getvalue()
+        sys.stdout.close()
+        sys.stdout = stdout
+
+        self.assertEqual(output, """**** BYTES ****
+Bytes: 31 32 33 34
+('Size:', 4)
+Integer: Signed: (875770417,), Unsigned: (875770417,)
+Float: (1.6688933612840628e-07,)
+String: 1234
+""")
