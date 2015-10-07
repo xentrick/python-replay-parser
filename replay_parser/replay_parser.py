@@ -322,9 +322,6 @@ class ReplayParser:
     def _pretty_byte_string(self, bytes_read):
         return ' '.join("{:02x}".format(ord(x)) for x in bytes_read)
 
-    def _print_bytes(self, bytes_read):
-        print('Hex read: {}'.format(self._pretty_byte_string(bytes_read)))
-
     def _read_integer(self, replay_file, length, signed=True):
         if signed:
             number_format = {
