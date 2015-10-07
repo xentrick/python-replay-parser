@@ -95,11 +95,11 @@ class ReplayParser:
 
         value = None
 
-        if type_name == 'IntProperty':
+        if type_name == b'IntProperty':
             value_length = self._read_integer(replay_file, 8)
             value = self._read_integer(replay_file, value_length)
 
-        elif type_name == 'StrProperty':
+        elif type_name == b'StrProperty':
             unknown = self._read_integer(replay_file, 8)
             length = self._read_integer(replay_file, 4)
 
@@ -109,16 +109,16 @@ class ReplayParser:
             else:
                 value = self._read_string(replay_file, length)
 
-        elif type_name == 'FloatProperty':
+        elif type_name == b'FloatProperty':
             length = self._read_integer(replay_file, 8)
             value = self._read_float(replay_file, length)
 
-        elif type_name == 'NameProperty':
+        elif type_name == b'NameProperty':
             unknown = self._read_integer(replay_file, 8)
             length = self._read_integer(replay_file, 4)
             value = self._read_string(replay_file, length)
 
-        elif type_name == 'ArrayProperty':
+        elif type_name == b'ArrayProperty':
             # I imagine that this is the length of bytes that the data
             # in the "array" actually take up in the file.
             unknown = self._read_integer(replay_file, 8)
