@@ -12,6 +12,6 @@ matrix:
 sudo: false
 install:
     - pip install coveralls
-script: python -m unittest discover
+script: coverage run --source=replay_parser -m unittest discover
 after_success:
   - coveralls
