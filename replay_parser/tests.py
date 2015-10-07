@@ -100,3 +100,12 @@ class TestReplayParser(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             parser.parse(None)
+
+    def test_read_name_table(self):
+        parser = ReplayParser()
+
+        # Passing some unusual data into this function will cause it to throw
+        # an exception.
+        with open(self.folder_path + '2s.replay', 'rb') as f:
+            with self.assertRaises(Exception):
+                parser._read_name_table(f)
