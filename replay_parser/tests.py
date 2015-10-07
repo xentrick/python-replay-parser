@@ -60,6 +60,3 @@ class TestReplayParser(unittest.TestCase):
             response = parser.parse(f)
             self.assertIsInstance(response, dict)
             self.assertEqual(response['header']['Id'], '50D5031342FF90D9F25BE5A0152E56B8')
-
-if __name__ == '__main__':
-    unittest.main()
