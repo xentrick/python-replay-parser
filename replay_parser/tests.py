@@ -165,3 +165,14 @@ class TestReplayParser(unittest.TestCase):
 .......0 = H: Not set
 """)
         self.assertEqual(bits, (1, 0, 0, 0, 0, 0, 0, 0))
+
+    def test_read_bit(self):
+        parser = ReplayParser()
+        self.assertEqual(parser._read_bit(u'\u0001', 0), 1)
+        self.assertEqual(parser._read_bit(u'\u0001', 1), 0)
+        self.assertEqual(parser._read_bit(u'\u0001', 2), 0)
+        self.assertEqual(parser._read_bit(u'\u0001', 3), 0)
+        self.assertEqual(parser._read_bit(u'\u0001', 4), 0)
+        self.assertEqual(parser._read_bit(u'\u0001', 5), 0)
+        self.assertEqual(parser._read_bit(u'\u0001', 6), 0)
+        self.assertEqual(parser._read_bit(u'\u0001', 7), 0)
