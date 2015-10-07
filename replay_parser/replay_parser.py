@@ -18,8 +18,10 @@ class ReplayParser:
             replay_file.seek(0)
         elif hasattr(replay_file, 'file'):
             replay_file = open(replay_file.file.path, 'rb')
+        elif isinstance(replay_file, str):
+            replay_file = open(replay_file, 'rb')
         else:
-            raise Exception("Unable to determine file type.")
+            raise TypeError("Unable to determine file type.")
 
         data = {}
         # TODO: CRC, version info, other stuff
@@ -80,30 +82,17 @@ class ReplayParser:
                 return results
 
     def _read_property(self, replay_file):
-        if self.debug:
-            print("Reading name")
-
         name_length = self._read_integer(replay_file, 4)
 
         property_name = self._read_string(replay_file, name_length)
 
-        if self.debug:
-            print("Property name: {}".format(property_name))
-
         if property_name == 'None':
             return None
-
-        if self.debug:
-            print("Reading type")
 
         type_length = self._read_integer(replay_file, 4)
         type_name = self._read_string(replay_file, type_length)
 
-        if self.debug:
-            print("Type name: {}".format(type_name))
-
-        if self.debug:
-            print("Reading value")
+        value = None
 
         if type_name == 'IntProperty':
             value_length = self._read_integer(replay_file, 8)
@@ -136,11 +125,8 @@ class ReplayParser:
 
             value = [
                 self._read_properties(replay_file)
-                for x in range(array_length)
+                for x in xrange(array_length)
             ]
-
-        if self.debug:
-            print("Value: {}".format(value))
 
         return {'name': property_name, 'value': value}
 
@@ -160,7 +146,7 @@ class ReplayParser:
 
         key_frames = [
             self._read_key_frame(replay_file)
-            for x in range(number_of_key_frames)
+            for x in xrange(number_of_key_frames)
         ]
 
         return key_frames
@@ -214,7 +200,7 @@ class ReplayParser:
 
         num_goals = self._read_integer(replay_file, 4)
 
-        for x in range(num_goals):
+        for x in xrange(num_goals):
             length = self._read_integer(replay_file, 4)
             team = self._read_string(replay_file, length)
             frame = self._read_integer(replay_file, 4)
@@ -231,7 +217,7 @@ class ReplayParser:
 
         packages = []
 
-        for x in range(num_packages):
+        for x in xrange(num_packages):
             string_length = self._read_integer(replay_file, 4)
             packages.append(self._read_string(replay_file, string_length))
 
@@ -242,7 +228,7 @@ class ReplayParser:
 
         objects = []
 
-        for x in range(num_objects):
+        for x in xrange(num_objects):
             string_length = self._read_integer(replay_file, 4)
             objects.append(self._read_string(replay_file, string_length))
 
@@ -256,7 +242,6 @@ class ReplayParser:
         else:
             # We haven't had this situation yet.
             raise Exception('Name table length was not 0.')
-            return []
 
     # XXX: This is a bit iffy. Check how it works.
     def _read_class_index_map(self, replay_file):
@@ -264,7 +249,7 @@ class ReplayParser:
 
         class_index_map = {}
 
-        for x in range(class_index_map_length):
+        for x in xrange(class_index_map_length):
             length = self._read_integer(replay_file, 4)
             name = self._read_string(replay_file, length)
             integer = self._read_integer(replay_file, 4)
@@ -339,9 +324,6 @@ class ReplayParser:
     def _pretty_byte_string(self, bytes_read):
         return ' '.join("{:02x}".format(ord(x)) for x in bytes_read)
 
-    def _print_bytes(self, bytes_read):
-        print('Hex read: {}'.format(self._pretty_byte_string(bytes_read)))
-
     def _read_integer(self, replay_file, length, signed=True):
         if signed:
             number_format = {
@@ -359,11 +341,8 @@ class ReplayParser:
             }[length]
 
         bytes_read = replay_file.read(length)
-        if self.debug:
-            self._print_bytes(bytes_read)
         value = struct.unpack(number_format, bytes_read)[0]
-        if self.debug:
-            print("Integer read: {}".format(value))
+
         return value
 
     def _read_float(self, replay_file, length):
@@ -373,31 +352,16 @@ class ReplayParser:
         }[length]
 
         bytes_read = replay_file.read(length)
-
-        if self.debug:
-            self._print_bytes(bytes_read)
-
         value = struct.unpack(number_format, bytes_read)[0]
-
-        if self.debug:
-            print("Float read: {}".format(value))
 
         return value
 
     def _read_unknown(self, replay_file, num_bytes):
         bytes_read = replay_file.read(num_bytes)
-
-        if self.debug:
-            self._print_bytes(bytes_read)
-
         return bytes_read
 
     def _read_string(self, replay_file, length):
         bytes_read = replay_file.read(length)[0:-1]
-
-        if self.debug:
-            self._print_bytes(bytes_read)
-
         return bytes_read
 
     def _sniff_bytes(self, replay_file, size):
@@ -416,7 +380,7 @@ class ReplayParser:
             print("String: {}".format(b))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     filename = sys.argv[1]
     if not filename.endswith('.replay'):
         sys.exit('Filename {} does not appear to be a valid replay file'.format(filename))
