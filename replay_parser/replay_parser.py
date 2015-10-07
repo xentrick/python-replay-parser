@@ -378,7 +378,7 @@ class ReplayParser:
             print("String: {}".format(b))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     filename = sys.argv[1]
     if not filename.endswith('.replay'):
         sys.exit('Filename {} does not appear to be a valid replay file'.format(filename))
