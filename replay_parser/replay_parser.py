@@ -16,6 +16,10 @@ class ReplayParser:
 
         data['header'] = self._read_properties(replay_file)
         self.number_of_goals = data['header']['Team0Score'] + data['header']['Team1Score']
+
+        if self.number_of_goals == 0 and 'Goals' not in data['header']:
+            data['header']['Goals'] = []
+
         assert self.number_of_goals == len(data['header']['Goals'])
 
         unknown = self._read_unknown(replay_file, 8)
