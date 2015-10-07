@@ -93,6 +93,8 @@ class ReplayParser:
         type_length = self._read_integer(replay_file, 4)
         type_name = self._read_string(replay_file, type_length)
 
+        value = None
+
         if type_name == 'IntProperty':
             value_length = self._read_integer(replay_file, 8)
             value = self._read_integer(replay_file, value_length)
@@ -126,6 +128,8 @@ class ReplayParser:
                 self._read_properties(replay_file)
                 for x in six.moves.range(array_length)
             ]
+        else:
+            print("type_name not handled:", type_name)
 
         return {'name': property_name, 'value': value}
 
