@@ -19,7 +19,7 @@ class ReplayParser:
         elif hasattr(replay_file, 'file'):
             replay_file = open(replay_file.file.path, 'rb')
         else:
-            raise Exception("Unable to determine file type.")
+            raise TypeError("Unable to determine file type.")
 
         data = {}
         # TODO: CRC, version info, other stuff
