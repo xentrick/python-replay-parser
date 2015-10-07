@@ -8,7 +8,7 @@ import struct
 
 class ReplayParser:
 
-    SERVER_REGEX = r'((EU|USE|USW|OCE|SAM)\d+(-[A-Z][a-z]+)?)'
+    SERVER_REGEX = b'((EU|USE|USW|OCE|SAM)\d+(-[A-Z][a-z]+)?)'
 
     def __init__(self, debug=False):
         self.debug = debug
