@@ -1,8 +1,11 @@
+import re
 import sys
 import struct
 
 
 class ReplayParser:
+
+    SERVER_REGEX = r'((EU|USE|USW|OCE|SAM)\d+(-[A-Z][a-z]+)?)'
 
     def __init__(self, debug=False):
         self.debug = debug
@@ -43,6 +46,9 @@ class ReplayParser:
         data['class_index_map'] = self._read_class_index_map(replay_file)
 
         data['class_net_cache_map'] = self._read_class_net_cache_map(replay_file)
+
+        # Run some manual parsing operations.
+        data = self.manual_parse(data, replay_file)
 
         # data['network_stream'] = self._process_network_stream(data['network_stream'])
         return data
@@ -269,6 +275,22 @@ class ReplayParser:
                 break
 
         return class_net_cache_map
+
+    # Temporary method while we learn the replay format.
+    def manual_parse(self, results, replay_file):
+        server_regexp = re.compile(self.SERVER_REGEX)
+
+        replay_file.seek(0)
+        search = server_regexp.search(replay_file.read())
+        if search:
+            print search.group()
+            results['ServerName'] = search.group()
+
+        return results
+
+    ##################
+    # Helper functions
+    ##################
 
     def _debug_bits(self, replay_file, labels=None):
         byte = replay_file.read(1)
