@@ -1,17 +1,7 @@
 language: python
-python:
-- "2.7"
-- "3.3"
-- "3.4"
-- "pypy"
-matrix:
-  allow_failures:
-    - python: "3.3"
-    - python: "3.4"
-    - python: "pypy"
 sudo: false
 install:
-    - pip install coveralls six
+    - pip install coveralls
 script: coverage run --source=replay_parser -m unittest discover
 after_success:
   - coveralls

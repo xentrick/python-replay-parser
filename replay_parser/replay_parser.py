@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import re
-import six
 import sys
 import struct
 
 
 class ReplayParser:
 
-    SERVER_REGEX = b'((EU|USE|USW|OCE|SAM)\d+(-[A-Z][a-z]+)?)'
+    SERVER_REGEX = r'((EU|USE|USW|OCE|SAM)\d+(-[A-Z][a-z]+)?)'
 
     def __init__(self, debug=False):
         self.debug = debug
@@ -87,7 +86,7 @@ class ReplayParser:
 
         property_name = self._read_string(replay_file, name_length)
 
-        if property_name == b'None':
+        if property_name == 'None':
             return None
 
         type_length = self._read_integer(replay_file, 4)
@@ -95,11 +94,11 @@ class ReplayParser:
 
         value = None
 
-        if type_name == b'IntProperty':
+        if type_name == 'IntProperty':
             value_length = self._read_integer(replay_file, 8)
             value = self._read_integer(replay_file, value_length)
 
-        elif type_name == b'StrProperty':
+        elif type_name == 'StrProperty':
             unknown = self._read_integer(replay_file, 8)
             length = self._read_integer(replay_file, 4)
 
@@ -109,16 +108,16 @@ class ReplayParser:
             else:
                 value = self._read_string(replay_file, length)
 
-        elif type_name == b'FloatProperty':
+        elif type_name == 'FloatProperty':
             length = self._read_integer(replay_file, 8)
             value = self._read_float(replay_file, length)
 
-        elif type_name == b'NameProperty':
+        elif type_name == 'NameProperty':
             unknown = self._read_integer(replay_file, 8)
             length = self._read_integer(replay_file, 4)
             value = self._read_string(replay_file, length)
 
-        elif type_name == b'ArrayProperty':
+        elif type_name == 'ArrayProperty':
             # I imagine that this is the length of bytes that the data
             # in the "array" actually take up in the file.
             unknown = self._read_integer(replay_file, 8)
@@ -126,7 +125,7 @@ class ReplayParser:
 
             value = [
                 self._read_properties(replay_file)
-                for x in six.moves.range(array_length)
+                for x in xrange(array_length)
             ]
         else:
             print("type_name not handled:", type_name)
@@ -137,7 +136,7 @@ class ReplayParser:
         map_names = []
         number_of_maps = self._read_integer(replay_file, 4)
 
-        for x in six.moves.range(number_of_maps):
+        for x in xrange(number_of_maps):
             map_name_length = self._read_integer(replay_file, 4)
             map_name = self._read_string(replay_file, map_name_length)
             map_names.append(map_name)
@@ -149,7 +148,7 @@ class ReplayParser:
 
         key_frames = [
             self._read_key_frame(replay_file)
-            for x in six.moves.range(number_of_key_frames)
+            for x in xrange(number_of_key_frames)
         ]
 
         return key_frames
@@ -203,7 +202,7 @@ class ReplayParser:
 
         num_goals = self._read_integer(replay_file, 4)
 
-        for x in six.moves.range(num_goals):
+        for x in xrange(num_goals):
             length = self._read_integer(replay_file, 4)
             team = self._read_string(replay_file, length)
             frame = self._read_integer(replay_file, 4)
@@ -220,7 +219,7 @@ class ReplayParser:
 
         packages = []
 
-        for x in six.moves.range(num_packages):
+        for x in xrange(num_packages):
             string_length = self._read_integer(replay_file, 4)
             packages.append(self._read_string(replay_file, string_length))
 
@@ -231,7 +230,7 @@ class ReplayParser:
 
         objects = []
 
-        for x in six.moves.range(num_objects):
+        for x in xrange(num_objects):
             string_length = self._read_integer(replay_file, 4)
             objects.append(self._read_string(replay_file, string_length))
 
@@ -252,7 +251,7 @@ class ReplayParser:
 
         class_index_map = {}
 
-        for x in six.moves.range(class_index_map_length):
+        for x in xrange(class_index_map_length):
             length = self._read_integer(replay_file, 4)
             name = self._read_string(replay_file, length)
             integer = self._read_integer(replay_file, 4)
@@ -294,7 +293,7 @@ class ReplayParser:
         byte = replay_file.read(1)
         output = ()
 
-        for index in six.moves.range(8):
+        for index in xrange(8):
             i, j = divmod(index, 8)
 
             if ord(byte[i]) & (1 << j):

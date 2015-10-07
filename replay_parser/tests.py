@@ -1,7 +1,7 @@
 from replay_parser import ReplayParser
 
 import os
-from six import StringIO
+from StringIO import StringIO
 import struct
 import sys
 import unittest
@@ -23,7 +23,7 @@ class TestReplayParser(unittest.TestCase):
         with open(self.folder_path + '1.04.replay', 'rb') as f:
             response = parser.parse(f)
             self.assertIsInstance(response, dict)
-            self.assertEqual(response['header'][b'Id'], '0AB18BAB4CCE97201B7753A84B358D48')
+            self.assertEqual(response['header']['Id'], '0AB18BAB4CCE97201B7753A84B358D48')
 
     def test_105_replay(self):
         """
@@ -35,7 +35,7 @@ class TestReplayParser(unittest.TestCase):
         with open(self.folder_path + '1.05.replay', 'rb') as f:
             response = parser.parse(f)
             self.assertIsInstance(response, dict)
-            self.assertEqual(response['header'][b'Id'], '56E7708C45ED1CF3B9E51EBF1ADF4431')
+            self.assertEqual(response['header']['Id'], '56E7708C45ED1CF3B9E51EBF1ADF4431')
 
     def test_broken_replay(self):
         """
@@ -61,7 +61,7 @@ class TestReplayParser(unittest.TestCase):
         with open(self.folder_path + 'keyframes_missing.replay', 'rb') as f:
             response = parser.parse(f)
             self.assertIsInstance(response, dict)
-            self.assertEqual(response['header'][b'Id'], '50D5031342FF90D9F25BE5A0152E56B8')
+            self.assertEqual(response['header']['Id'], '50D5031342FF90D9F25BE5A0152E56B8')
 
     def test_keyframes_2s_replay(self):
         """
@@ -75,7 +75,7 @@ class TestReplayParser(unittest.TestCase):
         with open(self.folder_path + '2s.replay', 'rb') as f:
             response = parser.parse(f)
             self.assertIsInstance(response, dict)
-            self.assertEqual(response['header'][b'Id'], '016D2CB946676AFDC11D29BFD84C9CB3')
+            self.assertEqual(response['header']['Id'], '016D2CB946676AFDC11D29BFD84C9CB3')
 
     def test_file_attr(self):
         class Obj:
@@ -88,14 +88,14 @@ class TestReplayParser(unittest.TestCase):
 
         response = parser.parse(Obj())
         self.assertIsInstance(response, dict)
-        self.assertEqual(response['header'][b'Id'], '016D2CB946676AFDC11D29BFD84C9CB3')
+        self.assertEqual(response['header']['Id'], '016D2CB946676AFDC11D29BFD84C9CB3')
 
     def test_file_str(self):
         parser = ReplayParser(debug=True)
         response = parser.parse(self.folder_path + '2s.replay')
 
         self.assertIsInstance(response, dict)
-        self.assertEqual(response['header'][b'Id'], '016D2CB946676AFDC11D29BFD84C9CB3')
+        self.assertEqual(response['header']['Id'], '016D2CB946676AFDC11D29BFD84C9CB3')
 
     def test_file_exception(self):
         parser = ReplayParser()
