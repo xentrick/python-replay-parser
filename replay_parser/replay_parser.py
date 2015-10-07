@@ -87,7 +87,7 @@ class ReplayParser:
 
         property_name = self._read_string(replay_file, name_length)
 
-        if property_name == 'None':
+        if property_name == b'None':
             return None
 
         type_length = self._read_integer(replay_file, 4)
