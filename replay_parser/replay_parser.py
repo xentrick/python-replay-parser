@@ -240,7 +240,6 @@ class ReplayParser:
         else:
             # We haven't had this situation yet.
             raise Exception('Name table length was not 0.')
-            return []
 
     # XXX: This is a bit iffy. Check how it works.
     def _read_class_index_map(self, replay_file):
