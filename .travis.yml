@@ -4,5 +4,12 @@ python:
 - "3.3"
 - "3.4"
 - "pypy"
+matrix:
+  allow_failures:
+    - python: "3.3"
+    - python: "3.4"
+    - python: "pypy"
 sudo: false
 script: python -m unittest discover
+after_success:
+  - coveralls
