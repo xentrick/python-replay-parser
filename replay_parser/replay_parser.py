@@ -294,7 +294,7 @@ class ReplayParser:
         replay_file.seek(0)
         search = server_regexp.search(replay_file.read())
         if search:
-            results['ServerName'] = search.group()
+            results['header']['ServerName'] = search.group()
 
         return results
 
