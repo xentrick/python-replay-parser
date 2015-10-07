@@ -115,7 +115,7 @@ class ReplayParser:
 
             if length < 0:
                 length = abs(length) * 2
-                value = self._read_string(replay_file, length)[:-1].decode('utf-16')
+                value = self._read_string(replay_file, length)[:-1].decode('utf-16').encode('utf-8')
             else:
                 value = self._read_string(replay_file, length)
 
