@@ -13,6 +13,14 @@ class ReplayParser:
         self.debug = debug
 
     def parse(self, replay_file):
+        # Work out what type of file we're dealing with.
+        if hasattr(replay_file, 'read'):
+            replay_file.seek(0)
+        elif hasattr(replay_file, 'file'):
+            replay_file = open(replay_file.file.path, 'rb')
+        else:
+            raise Exception("Unable to determine file type.")
+
         data = {}
         # TODO: CRC, version info, other stuff
         data['crc_check'] = replay_file.read(20)
