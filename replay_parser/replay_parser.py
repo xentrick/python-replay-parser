@@ -306,13 +306,13 @@ class ReplayParser:
             output = output + (int(value),)
 
             if labels and len(labels) == 8:
-                print '{} = {}: {}'.format(
+                print('{} = {}: {}'.format(
                     formatted,
                     labels[index],
                     'Set' if formatted == '1' else 'Not set',
-                )
+                ))
             else:
-                print value.rjust(index+1, '.').ljust(8, '.')
+                print(value.rjust(index+1, '.').ljust(8, '.'))
 
         return output
 
@@ -393,7 +393,7 @@ class ReplayParser:
 
         print("**** BYTES ****")
         print("Bytes: {}".format(self._pretty_byte_string(b)))
-        print 'Size:', size
+        print('Size:', size)
 
         if size == 2:
             print("Short: Signed: {} Unsigned: {}".format(struct.unpack('<h', b), struct.unpack('<H', b)))
@@ -412,10 +412,10 @@ if __name__ == '__main__':
     with open(filename, 'rb') as replay_file:
         try:
             results = ReplayParser(debug=False).parse(replay_file)
-            print results
+            print(results)
         except IOError as e:
-            print e
+            print(e)
         except struct.error as e:
-            print e
+            print(e)
         except Exception as e:
-            print e
+            print(e)
