@@ -182,3 +182,43 @@ class TestReplayParser(unittest.TestCase):
         response = parser._pretty_byte_string(u'\u0000\u0001\u0002\u0003')
 
         self.assertEqual(response, '00 01 02 03')
+
+    def test_read_integer(self):
+        parser = ReplayParser()
+
+        data = StringIO()
+        data.write('\x01\x02\x03\x04\x05\x06\x07\x08')
+
+        # Signed integers.
+        data.seek(0)
+        response = parser._read_integer(data, 1, signed=True)
+        self.assertEqual(response, 1)
+
+        data.seek(0)
+        response = parser._read_integer(data, 2, signed=True)
+        self.assertEqual(response, 513)
+
+        data.seek(0)
+        response = parser._read_integer(data, 4, signed=True)
+        self.assertEqual(response, 67305985)
+
+        data.seek(0)
+        response = parser._read_integer(data, 8, signed=True)
+        self.assertEqual(response, 578437695752307201)
+
+        # Unsigned integers.
+        data.seek(0)
+        response = parser._read_integer(data, 1, signed=False)
+        self.assertEqual(response, 1)
+
+        data.seek(0)
+        response = parser._read_integer(data, 2, signed=False)
+        self.assertEqual(response, 513)
+
+        data.seek(0)
+        response = parser._read_integer(data, 4, signed=False)
+        self.assertEqual(response, 67305985)
+
+        data.seek(0)
+        response = parser._read_integer(data, 8, signed=False)
+        self.assertEqual(response, 578437695752307201)
