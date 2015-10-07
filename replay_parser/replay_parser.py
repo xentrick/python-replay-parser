@@ -271,7 +271,6 @@ class ReplayParser:
                     (self._read_integer(replay_file, 4), self._read_integer(replay_file, 4),)
                 )
             except Exception as e:
-                print e.message
                 break
 
         return class_net_cache_map
@@ -283,7 +282,6 @@ class ReplayParser:
         replay_file.seek(0)
         search = server_regexp.search(replay_file.read())
         if search:
-            print search.group()
             results['ServerName'] = search.group()
 
         return results
