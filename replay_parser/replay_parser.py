@@ -18,6 +18,8 @@ class ReplayParser:
             replay_file.seek(0)
         elif hasattr(replay_file, 'file'):
             replay_file = open(replay_file.file.path, 'rb')
+        elif isinstance(replay_file, str):
+            replay_file = open(replay_file, 'rb')
         else:
             raise TypeError("Unable to determine file type.")
 

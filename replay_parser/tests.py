@@ -88,6 +88,13 @@ class TestReplayParser(unittest.TestCase):
         self.assertIsInstance(response, dict)
         self.assertEqual(response['header']['Id'], '016D2CB946676AFDC11D29BFD84C9CB3')
 
+    def test_file_str(self):
+        parser = ReplayParser(debug=True)
+        response = parser.parse(self.folder_path + '2s.replay')
+
+        self.assertIsInstance(response, dict)
+        self.assertEqual(response['header']['Id'], '016D2CB946676AFDC11D29BFD84C9CB3')
+
     def test_file_exception(self):
         parser = ReplayParser()
 
