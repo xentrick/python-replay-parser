@@ -176,3 +176,9 @@ class TestReplayParser(unittest.TestCase):
         self.assertEqual(parser._read_bit(u'\u0001', 5), 0)
         self.assertEqual(parser._read_bit(u'\u0001', 6), 0)
         self.assertEqual(parser._read_bit(u'\u0001', 7), 0)
+
+    def test_pretty_byte_string(self):
+        parser = ReplayParser()
+        response = parser._pretty_byte_string(u'\u0000\u0001\u0002\u0003')
+
+        self.assertEqual(response, '00 01 02 03')
