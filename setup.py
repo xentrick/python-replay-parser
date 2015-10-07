@@ -4,10 +4,9 @@ from setuptools import setup
 
 from replay_parser import VERSION
 
-
 setup(
     name="rocket-league-replay-parser",
-    version='.'.join(VERSION),
+    version=".".join(str(n) for n in VERSION),
     url="https://github.com/danielsamuels/rocket-league-replay-parser",
     author="Daniel Samuels",
     author_email="daniel.samuels1@gmail.com",
