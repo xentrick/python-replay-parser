@@ -74,3 +74,22 @@ class TestReplayParser(unittest.TestCase):
             response = parser.parse(f)
             self.assertIsInstance(response, dict)
             self.assertEqual(response['header']['Id'], '016D2CB946676AFDC11D29BFD84C9CB3')
+
+    def test_file_attr(self):
+        class Obj:
+            class File:
+                path = self.folder_path + '2s.replay'
+
+            file = File()
+
+        parser = ReplayParser()
+
+        response = parser.parse(Obj())
+        self.assertIsInstance(response, dict)
+        self.assertEqual(response['header']['Id'], '016D2CB946676AFDC11D29BFD84C9CB3')
+
+    def test_file_exception(self):
+        parser = ReplayParser()
+
+        with self.assertRaises(TypeError):
+            parser.parse(None)
