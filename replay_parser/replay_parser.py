@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import re
 import sys
 import struct
@@ -133,7 +135,7 @@ class ReplayParser:
         map_names = []
         number_of_maps = self._read_integer(replay_file, 4)
 
-        for x in range(number_of_maps):
+        for x in xrange(number_of_maps):
             map_name_length = self._read_integer(replay_file, 4)
             map_name = self._read_string(replay_file, map_name_length)
             map_names.append(map_name)
