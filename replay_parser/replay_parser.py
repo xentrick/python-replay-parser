@@ -33,8 +33,6 @@ class ReplayParser:
         if self.number_of_goals == 0 and 'Goals' not in data['header']:
             data['header']['Goals'] = []
 
-        assert self.number_of_goals == len(data['header']['Goals'])
-
         unknown = self._read_unknown(replay_file, 8)
 
         data['level_info'] = self._read_level_info(replay_file)
@@ -208,9 +206,6 @@ class ReplayParser:
         goal_ticks = []
 
         num_goals = self._read_integer(replay_file, 4)
-
-        if num_goals != self.number_of_goals:
-            raise Exception("Number of goals is incorrect at offset {}.".format(replay_file.tell() - 4))
 
         for x in range(num_goals):
             length = self._read_integer(replay_file, 4)
