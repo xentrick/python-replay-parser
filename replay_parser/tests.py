@@ -1,7 +1,9 @@
 from replay_parser import ReplayParser
 
 import os
+from StringIO import StringIO
 import struct
+import sys
 import unittest
 
 
@@ -109,3 +111,57 @@ class TestReplayParser(unittest.TestCase):
         with open(self.folder_path + '2s.replay', 'rb') as f:
             with self.assertRaises(Exception):
                 parser._read_name_table(f)
+
+    def test_debug_bits(self):
+        parser = ReplayParser()
+
+        data = StringIO()
+        data.write(u'\u0001')
+        data.seek(0)
+
+        stdout = sys.stdout
+        sys.stdout = StringIO()
+
+        bits = parser._debug_bits(data)
+
+        output = sys.stdout.getvalue()
+        sys.stdout.close()
+        sys.stdout = stdout
+
+        self.assertEqual(output, """1.......
+.0......
+..0.....
+...0....
+....0...
+.....0..
+......0.
+.......0
+""")
+        self.assertEqual(bits, (1, 0, 0, 0, 0, 0, 0, 0))
+
+    def test_debug_bits_with_labels(self):
+        parser = ReplayParser()
+
+        data = StringIO()
+        data.write(u'\u0001')
+        data.seek(0)
+
+        stdout = sys.stdout
+        sys.stdout = StringIO()
+
+        bits = parser._debug_bits(data, ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'])
+
+        output = sys.stdout.getvalue()
+        sys.stdout.close()
+        sys.stdout = stdout
+
+        self.assertEqual(output, """1....... = A: Not set
+.0...... = B: Not set
+..0..... = C: Not set
+...0.... = D: Not set
+....0... = E: Not set
+.....0.. = F: Not set
+......0. = G: Not set
+.......0 = H: Not set
+""")
+        self.assertEqual(bits, (1, 0, 0, 0, 0, 0, 0, 0))
