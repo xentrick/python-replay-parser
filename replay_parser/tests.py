@@ -60,3 +60,17 @@ class TestReplayParser(unittest.TestCase):
             response = parser.parse(f)
             self.assertIsInstance(response, dict)
             self.assertEqual(response['header']['Id'], '50D5031342FF90D9F25BE5A0152E56B8')
+
+    def test_keyframes_2s_replay(self):
+        """
+        For some reason, this replay is missing the key frames from when goals
+        were scored, so that data is not available to a parser. This is a good
+        test to ensure the parser can handle odd scenarios.
+        """
+
+        parser = ReplayParser()
+
+        with open(self.folder_path + '2s.replay', 'rb') as f:
+            response = parser.parse(f)
+            self.assertIsInstance(response, dict)
+            self.assertEqual(response['header']['Id'], '016D2CB946676AFDC11D29BFD84C9CB3')
