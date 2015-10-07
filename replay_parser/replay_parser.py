@@ -127,8 +127,6 @@ class ReplayParser:
                 self._read_properties(replay_file)
                 for x in xrange(array_length)
             ]
-        else:
-            print("type_name not handled:", type_name)
 
         return {'name': property_name, 'value': value}
 
