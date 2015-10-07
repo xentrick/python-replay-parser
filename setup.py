@@ -14,6 +14,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     description='Parser for Rocket League replay files.',
+    install_requires=['six'],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',

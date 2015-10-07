@@ -1,7 +1,7 @@
 from replay_parser import ReplayParser
 
 import os
-from StringIO import StringIO
+from six import StringIO
 import struct
 import sys
 import unittest
