@@ -79,7 +79,7 @@ class ReplayParser:
 
         data['classes'] = self._read_classes(replay_file)
 
-        data['property_tree'] = self._read_property_tree(replay_file)
+        data['property_tree'] = self._read_property_tree(replay_file, data['objects'], data['classes'])
 
         assert replay_file.tell() == properties_length + remaining_length + 16
 
@@ -265,19 +265,58 @@ class ReplayParser:
 
         return class_index_map
 
-    def _read_property_tree(self, replay_file):
-        classes = []
+    def _read_property_tree(self, replay_file, objects, classes):
+        branches = []
 
-        # Read to EOF.
-        while True:
-            try:
-                classes.append(
-                    (self._read_integer(replay_file), self._read_integer(replay_file),)
-                )
-            except Exception as e:
-                break
+        property_tree_length = self._read_integer(replay_file)
 
-        return classes
+        for x in xrange(property_tree_length):
+            data = {
+                'class': self._read_integer(replay_file),
+                'parent_id': self._read_integer(replay_file),
+                'id': self._read_integer(replay_file),
+                'properties': {}
+            }
+
+            if data['id'] == data['parent_id']:
+                data['id'] = 0
+
+            length = self._read_integer(replay_file)
+
+            for x in xrange(length):
+                index = self._read_integer(replay_file)
+                value = self._read_integer(replay_file)
+
+                data['properties'][index] = value
+
+            branches.append(data)
+
+        # Map the property keys against the class list.
+        classed = {}
+
+        def map_properties(id):
+            for branch in branches:
+                if branch['id'] == id:
+                    props = {}
+
+                    if branch['parent_id'] > 0:
+                        props = map_properties(branch['parent_id'])
+
+                    for k, v in enumerate(branch['properties']):
+                        props[v] = objects[k]
+
+                    return props
+
+            return {}
+
+        for branch in branches:
+            # {'parent_id': 36, 'properties': {42: 36}, 'class': 43, 'id': 37}
+            classed[branch['class']] = {
+                'class': classes[branch['class']],
+                'properties': map_properties(branch['id'] if branch['id'] > 0 else branch['parent_id'])
+            }
+
+        return branches
 
     # Temporary method while we learn the replay format.
     def manual_parse(self, results, replay_file):
