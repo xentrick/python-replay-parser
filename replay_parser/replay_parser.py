@@ -61,9 +61,9 @@ class ReplayParser:
 
         data['name_table'] = self._read_name_table(replay_file)
 
-        data['class_index_map'] = self._read_class_index_map(replay_file)
+        data['classes'] = self._read_classes(replay_file)
 
-        data['class_net_cache_map'] = self._read_class_net_cache_map(replay_file)
+        data['property_tree'] = self._read_property_tree(replay_file)
 
         # Run some manual parsing operations.
         data = self.manual_parse(data, replay_file)
