@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import pprint
 import re
 import sys
 import struct
@@ -381,7 +382,7 @@ if __name__ == '__main__':  # pragma: no cover
     with open(filename, 'rb') as replay_file:
         try:
             results = ReplayParser(debug=False).parse(replay_file)
-            print(results)
+            pprint.pprint(results)
         except IOError as e:
             print(e)
         except struct.error as e:
