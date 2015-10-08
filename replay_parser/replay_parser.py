@@ -108,8 +108,7 @@ class ReplayParser:
         if property_name == 'None':
             return None
 
-        type_length = self._read_integer(replay_file)
-        type_name = self._read_string(replay_file, type_length)
+        type_name = self._read_string(replay_file)
 
         value = None
 
@@ -133,8 +132,7 @@ class ReplayParser:
 
         elif type_name == 'NameProperty':
             unknown = self._read_integer(replay_file, 8)
-            length = self._read_integer(replay_file)
-            value = self._read_string(replay_file, length)
+            value = self._read_string(replay_file)
 
         elif type_name == 'ArrayProperty':
             # I imagine that this is the length of bytes that the data
@@ -154,9 +152,7 @@ class ReplayParser:
         number_of_maps = self._read_integer(replay_file)
 
         for x in xrange(number_of_maps):
-            map_name_length = self._read_integer(replay_file)
-            map_name = self._read_string(replay_file, map_name_length)
-            map_names.append(map_name)
+            map_names.append(self._read_string(replay_file))
 
         return map_names
 
@@ -197,11 +193,8 @@ class ReplayParser:
         unknown = self._read_integer(replay_file)
 
         while len(debug_strings) < array_length:
-            name_length = self._read_integer(replay_file)
-            player_name = self._read_string(replay_file, name_length)
-
-            debug_string_length = self._read_integer(replay_file)
-            debug_string = self._read_string(replay_file, debug_string_length)
+            player_name = self._read_string(replay_file)
+            debug_string = self._read_string(replay_file)
 
             debug_strings.append({
                 'PlayerName': player_name,
@@ -220,8 +213,7 @@ class ReplayParser:
         num_goals = self._read_integer(replay_file)
 
         for x in xrange(num_goals):
-            length = self._read_integer(replay_file)
-            team = self._read_string(replay_file, length)
+            team = self._read_string(replay_file)
             frame = self._read_integer(replay_file)
 
             goal_ticks.append({
@@ -237,8 +229,7 @@ class ReplayParser:
         packages = []
 
         for x in xrange(num_packages):
-            string_length = self._read_integer(replay_file)
-            packages.append(self._read_string(replay_file, string_length))
+            packages.append(self._read_string(replay_file))
 
         return packages
 
@@ -248,8 +239,7 @@ class ReplayParser:
         objects = []
 
         for x in xrange(num_objects):
-            string_length = self._read_integer(replay_file)
-            objects.append(self._read_string(replay_file, string_length))
+            objects.append(self._read_string(replay_file))
 
         return objects
 
@@ -258,8 +248,7 @@ class ReplayParser:
         table = []
 
         for x in xrange(name_table_length):
-            string_length = self._read_integer(replay_file)
-            table.append(self._read_string(replay_file, string_length))
+            table.append(self._read_string(replay_file))
 
         return table
 
@@ -270,8 +259,7 @@ class ReplayParser:
         class_index_map = {}
 
         for x in xrange(class_index_map_length):
-            length = self._read_integer(replay_file)
-            name = self._read_string(replay_file, length)
+            name = self._read_string(replay_file)
             integer = self._read_integer(replay_file)
 
             class_index_map[integer] = name
