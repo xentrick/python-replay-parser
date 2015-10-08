@@ -13,6 +13,18 @@ class TestReplayParser(unittest.TestCase):
         os.path.dirname(os.path.realpath(__file__))
     )
 
+    def test_ensure_all_replays_tested(self):
+        for filename in os.listdir(self.folder_path):
+            if not filename.endswith('.replay'):
+                continue
+
+            # Generate a test name.
+            filename = 'test_{}_replay'.format(
+                filename.replace('.replay', '').replace('.', '').replace('-', '_').lower()
+            )
+
+            self.assertTrue(hasattr(self, filename), filename)
+
     def test_104_replay(self):
         """
         A replay from version 1.04.
@@ -63,11 +75,11 @@ class TestReplayParser(unittest.TestCase):
             self.assertIsInstance(response, dict)
             self.assertEqual(response['header']['Id'], '50D5031342FF90D9F25BE5A0152E56B8')
 
-    def test_keyframes_2s_replay(self):
+    def test_2s_replay(self):
         """
-        For some reason, this replay is missing the key frames from when goals
-        were scored, so that data is not available to a parser. This is a good
-        test to ensure the parser can handle odd scenarios.
+        This is the shortest possible replay, at only 2 seconds long. It was
+        created by loading in to a split-screen 2v2 ranked match and forfeiting
+        as soon as the action was available.
         """
 
         parser = ReplayParser()
@@ -76,6 +88,30 @@ class TestReplayParser(unittest.TestCase):
             response = parser.parse(f)
             self.assertIsInstance(response, dict)
             self.assertEqual(response['header']['Id'], '016D2CB946676AFDC11D29BFD84C9CB3')
+
+    def test_limited_action_replay(self):
+        """
+        This is a very simple replay which doesn't have much action taking place.
+        """
+
+        parser = ReplayParser()
+
+        with open(self.folder_path + 'limited_action.replay', 'rb') as f:
+            response = parser.parse(f)
+            self.assertIsInstance(response, dict)
+            self.assertEqual(response['header']['Id'], 'C6ADF673457FE9B7B2A82DAB36E8FF86')
+
+    def test_score_wrong_replay(self):
+        """
+        This is a very replay which has some weird goal header data.
+        """
+
+        parser = ReplayParser()
+
+        with open(self.folder_path + 'score_wrong.replay', 'rb') as f:
+            response = parser.parse(f)
+            self.assertIsInstance(response, dict)
+            self.assertEqual(response['header']['Id'], 'B76567B84633D0D9CD8D4597DB0CAB30')
 
     def test_file_attr(self):
         class Obj:
