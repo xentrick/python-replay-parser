@@ -236,12 +236,13 @@ class ReplayParser:
 
     def _read_name_table(self, replay_file):
         name_table_length = self._read_integer(replay_file, 4)
+        table = []
 
-        if name_table_length == 0:
-            return []
-        else:
-            # We haven't had this situation yet.
-            raise Exception('Name table length was not 0.')
+        for x in xrange(name_table_length):
+            string_length = self._read_integer(replay_file, 4)
+            table.append(self._read_string(replay_file, string_length))
+
+        return table
 
     # XXX: This is a bit iffy. Check how it works.
     def _read_class_index_map(self, replay_file):
