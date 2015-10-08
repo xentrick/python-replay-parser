@@ -324,21 +324,13 @@ class ReplayParser:
     def _pretty_byte_string(self, bytes_read):
         return ' '.join("{:02x}".format(ord(x)) for x in bytes_read)
 
-    def _read_integer(self, replay_file, length, signed=True):
-        if signed:
-            number_format = {
-                1: '<b',
-                2: '<h',
-                4: '<i',
-                8: '<q',
-            }[length]
-        else:
-            number_format = {
-                1: '<B',
-                2: '<H',
-                4: '<I',
-                8: '<Q'
-            }[length]
+    def _read_integer(self, replay_file, length):
+        number_format = {
+            1: '<b',
+            2: '<h',
+            4: '<i',
+            8: '<q',
+        }[length]
 
         bytes_read = replay_file.read(length)
         value = struct.unpack(number_format, bytes_read)[0]
