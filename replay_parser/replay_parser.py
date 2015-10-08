@@ -252,7 +252,6 @@ class ReplayParser:
 
         return table
 
-    # XXX: This is a bit iffy. Check how it works.
     def _read_classes(self, replay_file):
         class_index_map_length = self._read_integer(replay_file)
 
