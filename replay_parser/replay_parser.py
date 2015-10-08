@@ -25,10 +25,20 @@ class ReplayParser:
             raise TypeError("Unable to determine file type.")
 
         data = {}
-        # TODO: CRC, version info, other stuff
-        data['crc_check'] = replay_file.read(20)
-        data['version'] = replay_file.read(23)
-        replay_file.seek(1, 1)
+        # Length of properties section (+36)
+        properties_length = self._read_integer(replay_file)
+
+        # CRC check.
+        crc = self._read_unknown(replay_file, 4)
+
+        # Version number
+        data['version_number'] = '{}.{}'.format(
+            self._read_integer(replay_file),
+            self._read_integer(replay_file)
+        )
+
+        # Identifier
+        data['version'] = self._read_string(replay_file)
 
         data['header'] = self._read_properties(replay_file)
 
@@ -43,7 +53,13 @@ class ReplayParser:
         if self.number_of_goals == 0 and 'Goals' not in data['header']:
             data['header']['Goals'] = []
 
-        unknown = self._read_unknown(replay_file, 8)
+        assert replay_file.tell() == properties_length + 8
+
+        # Size of remaining data.
+        remaining_length = self._read_integer(replay_file)
+
+        # TODO: Potentially a CRC check?
+        crc_2 = self._read_unknown(replay_file, 4)
 
         data['level_info'] = self._read_level_info(replay_file)
 
@@ -64,6 +80,8 @@ class ReplayParser:
         data['classes'] = self._read_classes(replay_file)
 
         data['property_tree'] = self._read_property_tree(replay_file)
+
+        assert replay_file.tell() == properties_length + remaining_length + 16
 
         # Run some manual parsing operations.
         data = self.manual_parse(data, replay_file)
@@ -354,7 +372,9 @@ class ReplayParser:
         bytes_read = replay_file.read(num_bytes)
         return bytes_read
 
-    def _read_string(self, replay_file, length):
+    def _read_string(self, replay_file, length=None):
+        if not length:
+            length = self._read_integer(replay_file)
         bytes_read = replay_file.read(length)[0:-1]
         return bytes_read
 
@@ -382,7 +402,7 @@ if __name__ == '__main__':  # pragma: no cover
     with open(filename, 'rb') as replay_file:
         try:
             results = ReplayParser(debug=False).parse(replay_file)
-            pprint.pprint(results)
+            # pprint.pprint(results)
         except IOError as e:
             print(e)
         except struct.error as e:
