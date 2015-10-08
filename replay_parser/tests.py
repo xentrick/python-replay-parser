@@ -191,36 +191,19 @@ class TestReplayParser(unittest.TestCase):
 
         # Signed integers.
         data.seek(0)
-        response = parser._read_integer(data, 1, signed=True)
+        response = parser._read_integer(data, 1)
         self.assertEqual(response, 1)
 
         data.seek(0)
-        response = parser._read_integer(data, 2, signed=True)
+        response = parser._read_integer(data, 2)
         self.assertEqual(response, 513)
 
         data.seek(0)
-        response = parser._read_integer(data, 4, signed=True)
+        response = parser._read_integer(data, 4)
         self.assertEqual(response, 67305985)
 
         data.seek(0)
-        response = parser._read_integer(data, 8, signed=True)
-        self.assertEqual(response, 578437695752307201)
-
-        # Unsigned integers.
-        data.seek(0)
-        response = parser._read_integer(data, 1, signed=False)
-        self.assertEqual(response, 1)
-
-        data.seek(0)
-        response = parser._read_integer(data, 2, signed=False)
-        self.assertEqual(response, 513)
-
-        data.seek(0)
-        response = parser._read_integer(data, 4, signed=False)
-        self.assertEqual(response, 67305985)
-
-        data.seek(0)
-        response = parser._read_integer(data, 8, signed=False)
+        response = parser._read_integer(data, 8)
         self.assertEqual(response, 578437695752307201)
 
     def test_sniff_bytes_0_bytes(self):
