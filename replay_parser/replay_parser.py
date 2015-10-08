@@ -50,7 +50,7 @@ class ReplayParser:
 
         self.number_of_goals = data['header']['Team0Score'] + data['header']['Team1Score']
 
-        if self.number_of_goals == 0 and 'Goals' not in data['header']:
+        if 'Goals' not in data['header']:
             data['header']['Goals'] = []
 
         assert replay_file.tell() == properties_length + 8
