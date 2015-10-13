@@ -144,6 +144,32 @@ class ReplayParser:
                 self._read_properties(replay_file)
                 for x in xrange(array_length)
             ]
+        elif type_name == 'ByteProperty':
+            # This could be a new array type.
+            # 25 (8) / 15 (4) / Str len 15 / Int (4) - 21 / Str len 21
+
+            self._read_integer(replay_file, 8)
+            key_length = self._read_integer(replay_file, 4)
+            byte_key = self._read_string(replay_file, length=key_length)
+            byte_value = self._read_string(replay_file)
+
+            value = {
+                byte_key: byte_value
+            }
+        elif type_name == 'QWordProperty':
+            # 64 bit int, 8 bytes.
+            length = self._read_integer(replay_file, 8)
+            value = self._read_integer(replay_file, length)
+        elif type_name == 'BoolProperty':
+            unknown = self._read_integer(replay_file, 8)
+            value = self._read_integer(replay_file, 1)
+
+            if value == 0:
+                value = False
+            elif value == 1:
+                value = True
+        else:
+            raise Exception("Unknown type: {}".format(type_name))
 
         return {'name': property_name, 'value': value}
 
