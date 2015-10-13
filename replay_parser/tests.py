@@ -36,6 +36,7 @@ class TestReplayParser(unittest.TestCase):
             response = parser.parse(f)
             self.assertIsInstance(response, dict)
             self.assertEqual(response['header']['Id'], '0AB18BAB4CCE97201B7753A84B358D48')
+            self.assertNotIn('PlayerStats', response['header'])
 
     def test_105_replay(self):
         """
@@ -48,6 +49,33 @@ class TestReplayParser(unittest.TestCase):
             response = parser.parse(f)
             self.assertIsInstance(response, dict)
             self.assertEqual(response['header']['Id'], '56E7708C45ED1CF3B9E51EBF1ADF4431')
+            self.assertNotIn('PlayerStats', response['header'])
+
+    def test_106_replay(self):
+        """
+        A replay from version 1.05.
+        """
+
+        parser = ReplayParser()
+
+        with open(self.folder_path + '1.06.replay', 'rb') as f:
+            response = parser.parse(f)
+            self.assertIsInstance(response, dict)
+            self.assertEqual(response['header']['Id'], 'E64C704042DFFF5E92F76EB9217B6422')
+            self.assertIn('PlayerStats', response['header'])
+
+    def test_106_2_replay(self):
+        """
+        A replay from version 1.05, with bots.
+        """
+
+        parser = ReplayParser()
+
+        with open(self.folder_path + '1.06_2.replay', 'rb') as f:
+            response = parser.parse(f)
+            self.assertIsInstance(response, dict)
+            self.assertEqual(response['header']['Id'], 'BBA60356493A53E6D4D7ADBA4E5D99B9')
+            self.assertIn('PlayerStats', response['header'])
 
     def test_broken_replay(self):
         """
