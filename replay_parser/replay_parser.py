@@ -87,6 +87,9 @@ class ReplayParser:
         data = self.manual_parse(data, replay_file)
 
         # data['network_stream'] = self._process_network_stream(data['network_stream'])
+
+        replay_file.close()
+
         return data
 
     def _read_properties(self, replay_file):
