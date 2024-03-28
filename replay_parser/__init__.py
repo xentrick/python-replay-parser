@@ -1,3 +1,3 @@
-from .replay_parser import *
+from replay_parser.parser import ReplayParser
 
-VERSION = (0, 1, 6)
+VERSION = (1, 0, 0)
