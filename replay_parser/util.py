@@ -129,6 +129,10 @@ def pretty_byte_string(bytes_read):
     return " ".join("{:02x}".format(ord(x)) for x in bytes_read)
 
 
+def pretty_bytes(bytes_read):
+    return " ".join([f"{x:02x}" for x in bytes_read])
+
+
 def read_integer(replay_file, length=4):
     number_format = {
         1: "<b",
@@ -186,7 +190,7 @@ def sniff_bytes(replay_file, size):
     b = read_unknown(replay_file, size)
 
     print("**** BYTES ****")
-    print("Bytes: {}".format(pretty_byte_string(b)))
+    print("Bytes: {}".format(pretty_bytes(b)))
     print("Size:", size)
 
     if size == 2:
@@ -203,4 +207,4 @@ def sniff_bytes(replay_file, size):
                 )
             )
             print("Float: {}".format(struct.unpack("<f", b)))
-        print("String: {}".format(b))
+        print(f"String: {b}")

@@ -1,7 +1,7 @@
 import os
 import struct
 import sys
-from io import StringIO
+from io import BytesIO, StringIO
 
 import pytest
 
@@ -10,9 +10,7 @@ from replay_parser.parser import ReplayParser
 
 
 class TestReplayParser:
-    folder_path = "{}/example_replays/".format(
-        os.path.dirname(os.path.realpath(__file__))
-    )
+    folder_path = "{}/replays/".format(os.path.dirname(os.path.realpath(__file__)))
 
     def test_ensure_all_replays_tested(self):
         for filename in os.listdir(self.folder_path):
@@ -228,14 +226,14 @@ class TestReplayParser:
         assert (
             output
             == """1.......
-            .0......
-            ..0.....
-            ...0....
-            ....0...
-            .....0..
-            ......0.
-            .......0
-            """
+.0......
+..0.....
+...0....
+....0...
+.....0..
+......0.
+.......0
+"""
         )
         assert bits == (1, 0, 0, 0, 0, 0, 0, 0)
 
@@ -283,8 +281,8 @@ class TestReplayParser:
         assert response == "00 01 02 03"
 
     def test_read_integer(self):
-        data = StringIO()
-        data.write("\x01\x02\x03\x04\x05\x06\x07\x08")
+        data = BytesIO()
+        data.write(b"\x01\x02\x03\x04\x05\x06\x07\x08")
 
         # Signed integers.
         data.seek(0)
@@ -304,8 +302,8 @@ class TestReplayParser:
         assert response == 578437695752307201
 
     def test_sniff_bytes_0_bytes(self):
-        data = StringIO()
-        data.write("")
+        data = BytesIO()
+        data.write(b"")
 
         stdout = sys.stdout
         sys.stdout = StringIO()
@@ -321,14 +319,14 @@ class TestReplayParser:
             output
             == """**** BYTES ****
 Bytes: \n\
-('Size:', 0)
-String: \n\
+Size: 0\n\
+String: b''\n\
 """
         )
 
     def test_sniff_bytes_1_byte(self):
-        data = StringIO()
-        data.write("\x31")
+        data = BytesIO()
+        data.write(b"\x31")
 
         stdout = sys.stdout
         sys.stdout = StringIO()
@@ -344,14 +342,14 @@ String: \n\
             output
             == """**** BYTES ****
 Bytes: 31
-('Size:', 1)
-String: 1
+Size: 1
+String: b'1'
 """
         )
 
     def test_sniff_bytes_2_bytes(self):
-        data = StringIO()
-        data.write("\x31\x32")
+        data = BytesIO()
+        data.write(b"\x31\x32")
 
         stdout = sys.stdout
         sys.stdout = StringIO()
@@ -367,14 +365,14 @@ String: 1
             output
             == """**** BYTES ****
 Bytes: 31 32
-('Size:', 2)
+Size: 2
 Short: Signed: (12849,) Unsigned: (12849,)
 """
         )
 
     def test_sniff_bytes_3_bytes(self):
-        data = StringIO()
-        data.write("\x31\x32\x33")
+        data = BytesIO()
+        data.write(b"\x31\x32\x33")
 
         stdout = sys.stdout
         sys.stdout = StringIO()
@@ -390,14 +388,14 @@ Short: Signed: (12849,) Unsigned: (12849,)
             output
             == """**** BYTES ****
 Bytes: 31 32 33
-('Size:', 3)
-String: 123
+Size: 3
+String: b'123'
 """
         )
 
     def test_sniff_bytes_4_bytes(self):
-        data = StringIO()
-        data.write("\x31\x32\x33\x34")
+        data = BytesIO()
+        data.write(b"\x31\x32\x33\x34")
 
         stdout = sys.stdout
         sys.stdout = StringIO()
@@ -413,9 +411,9 @@ String: 123
             output
             == """**** BYTES ****
 Bytes: 31 32 33 34
-('Size:', 4)
+Size: 4
 Integer: Signed: (875770417,), Unsigned: (875770417,)
 Float: (1.6688933612840628e-07,)
-String: 1234
+String: b'1234'
 """
         )
