@@ -1,7 +1,9 @@
+import io
 import logging
 import os
 
 from replay_parser import models
+from replay_parser.exceptions import CorruptReplay
 from replay_parser.type import PathLike
 
 log = logging.getLogger(__name__)
@@ -15,11 +17,12 @@ class ReplayParser:
             log.debug("Debug mode: ON")
 
     def parse(
-        self, replay_file: PathLike, filename: str | None = None, deep: bool = True
-    ):
+        self,
+        replay_file: PathLike,
+        net_stream: bool = False,
+    ) -> models.Replay:
         # Work out what type of file we're dealing with.
         if hasattr(replay_file, "read"):
-            replay_file.seek(0)
             fd = replay_file
         elif hasattr(replay_file, "file"):
             fd = open(replay_file.file.path, "rb")
@@ -28,11 +31,24 @@ class ReplayParser:
         else:
             raise TypeError("Unable to determine file type.")
 
+        # Get bounds
+        fd.seek(0, io.SEEK_END)
+        file_size = fd.tell()
+        log.debug(f"File Size: {file_size}")
+        fd.seek(0, io.SEEK_SET)
+
         # Header
         hdr = models.Header.parse(fd)
 
+        bv = hdr.build_version
+        log.debug(f"hdr.BuildVersion: {bv}")
+
         # Jump to Footer first
         net_data_start = fd.tell()
+
+        if (net_data_start + hdr.network_stream_length) > file_size:
+            raise CorruptReplay("Net stream data length exceeds file size.")
+
         log.debug(f"Skipping to footer... Net Data Start: {net_data_start}")
         fd.seek(hdr.network_stream_length, os.SEEK_CUR)
 
@@ -40,8 +56,22 @@ class ReplayParser:
         footer_start = fd.tell()
         log.debug(f"Footer Start: {footer_start}")
         footer = models.Footer.parse(fd)
-        log.debug(f"Footer: {footer}")
+        # log.debug(f"Footer: {footer}")
+
+        # Net stream
+        network_stream = None
+        if net_stream:
+            fd.seek(net_data_start)
+            network_stream = self.parse_net_stream(fd, hdr, footer)
 
         fd.close()
 
-        return footer  # Fix to replay structure
+        return models.Replay(header=hdr, network_stream=network_stream, footer=footer)
+
+    def parse_net_stream(
+        self, fd: PathLike, header: models.Header, footer: models.Footer
+    ):
+        # f = models.Frame.parse(fd)
+        # from pprint import pformat
+        # log.debug(f"Frame: {f}")
+        raise NotImplementedError("Net stream parsing is not supported yet.")

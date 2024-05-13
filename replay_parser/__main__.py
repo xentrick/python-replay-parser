@@ -30,6 +30,14 @@ if __name__ == "__main__":
         required=False,
         help="Turn on debug mode",
     )
+    parser.add_argument(
+        "-n",
+        "--net-stream",
+        dest="netstream",
+        action="store_true",
+        default=False,
+        help="Parse network stream (Warning: Very expensive)",
+    )
     argv = parser.parse_args()
 
     debug: bool = argv.debug
@@ -49,9 +57,6 @@ if __name__ == "__main__":
         try:
             rparser = ReplayParser(debug=debug)
             results = rparser.parse(replay_file, replay_name)
-            from pprint import pformat
-
-            print(pformat(results))
         except IOError as e:
             print(e)
         except struct.error as e:

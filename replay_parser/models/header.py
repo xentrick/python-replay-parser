@@ -3,7 +3,7 @@ import logging
 from dataclasses import dataclass
 
 from replay_parser import util
-from replay_parser.models.properties import read_properties
+from replay_parser.models.properties import PropertyValue, read_properties
 from replay_parser.type import PathLike
 
 log = logging.getLogger(__name__)
@@ -59,12 +59,17 @@ class Header:
     crc: int
     version: Version
     type: str
-    properties: int
+    properties: dict[str, PropertyValue]
     eof_length: int
     eof_crc: int
     levels: list[str]
     keyframes: list[KeyFrame]
     network_stream_length: int
+
+    @property
+    def build_version(self) -> str | None:
+        bv = self.properties.get("BuildVersion")
+        return bv
 
     @classmethod
     def parse(cls, fd: PathLike) -> "Header":
@@ -83,8 +88,9 @@ class Header:
         log.debug(f"\tReplayType: {rtype}")
 
         properties = read_properties(fd, version=version)
-
         log.debug(json.dumps(properties, indent=4))
+
+        # TODO: Extract BuildVersion
 
         eof_len = util.read_integer(fd, 4)
         eof_crc = util.read_integer(fd, 4)

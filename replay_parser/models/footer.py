@@ -1,6 +1,6 @@
-import json
 import logging
 from dataclasses import dataclass
+from typing import Optional
 
 from replay_parser import util
 from replay_parser.models.mapping import RELATIONS
@@ -46,7 +46,7 @@ class DebugString:
 
 @dataclass
 class TickMark:
-    descriptioin: str
+    description: str
     frame: int
 
     @classmethod
@@ -82,10 +82,17 @@ class ClassNetCacheProperty:
 
 @dataclass
 class ClassNetCacheEntry:
-    object_id: int
+    object_id: int  # index
     parent_id: int
     cache_id: int
     properties: list[ClassNetCacheProperty]
+    children: list["ClassNetCacheEntry"] | None = None
+    parent: Optional["ClassNetCacheEntry"] = None
+    root: bool = False
+
+    @property
+    def num_properties(self) -> int:
+        return len(self.properties)
 
     @classmethod
     def parse(cls, fd: PathLike) -> "ClassNetCacheEntry":
@@ -101,7 +108,7 @@ class ClassNetCacheEntry:
 
         # log.debug(f"ClassNetCacheProperties:\n\n{props}")
 
-        return cls(obj_id, parent_id, cache_id, props)
+        return cls(obj_id, parent_id, cache_id, props, [], None, False)
 
 
 @dataclass
@@ -112,7 +119,7 @@ class Footer:
     objects: list[str]
     names: list[str]
     classes: list[FooterClass]
-    class_net_cache: list
+    class_net_cache: list[ClassNetCacheEntry]
 
     @classmethod
     def parse(cls, fd: PathLike) -> "Footer":
@@ -124,7 +131,7 @@ class Footer:
             dstr = DebugString.parse(fd)
             dbg_strings.append(dstr)
 
-        log.debug(f"Debug Strings:\n\n{dbg_strings}")
+        # log.debug(f"Debug Strings:\n\n{pformat(dbg_strings)}\n")
 
         ticks = []
         c = util.read_integer(fd, 4)
@@ -132,7 +139,7 @@ class Footer:
             tm = TickMark.parse(fd)
             ticks.append(tm)
 
-        log.debug(f"Ticks:\n\n{ticks}")
+        # log.debug(f"Ticks:\n\n{pformat(ticks)}\n")
 
         packages = []
         c = util.read_integer(fd, 4)
@@ -140,7 +147,7 @@ class Footer:
             p = util.read_string16(fd)
             packages.append(p)
 
-        log.debug(f"Packages:\n\n{packages}")
+        # log.debug(f"Packages:\n\n{pformat(packages)}\n")
 
         obj_list = []
         c = util.read_integer(fd, 4)
@@ -148,7 +155,7 @@ class Footer:
             obj = normalize_object(util.read_string16(fd))
             obj_list.append(obj)
 
-        log.debug(f"Objects:\n\n{json.dumps(obj_list, indent=4)}")
+        # log.debug(f"Objects:\n\n{json.dumps(obj_list, indent=4)}\n")
 
         names = []
         c = util.read_integer(fd, 4)
@@ -156,7 +163,7 @@ class Footer:
             n = util.read_string16(fd)
             names.append(n)
 
-        log.debug(f"Names:\n\n{names}")
+        # log.debug(f"Names:\n\n{pformat(names)}\n")
 
         classes = []
         c = util.read_integer(fd, 4)
@@ -164,7 +171,7 @@ class Footer:
             fclass = FooterClass.parse(fd)
             classes.append(fclass)
 
-        log.debug(f"Classes:\n\n{classes}")
+        # log.debug(f"Classes:\n\n{pformat(classes)}\n")
 
         cnet_list = []
         c = util.read_integer(fd, 4)
@@ -172,11 +179,37 @@ class Footer:
             cnet = ClassNetCacheEntry.parse(fd)
             cnet_list.append(cnet)
 
-        log.debug(f"ClassNetCacheEntry:\n\n{cnet_list}")
+        # log.debug(f"Pre-Fix ClassNetCacheEntry:\n\n{pformat(cnet_list)}\n")
 
-        format_class_net_cache(cnet_list, classes)
+        result = cls(dbg_strings, ticks, packages, obj_list, names, classes, cnet_list)
 
-        return cls(dbg_strings, ticks, packages, obj_list, names, classes, cnet_list)
+        # Fix parent tree
+        result.fix_this_shit()
+        # log.debug(f"ClassNetCacheEntry:\n\n{pformat(cnet_list)}\n")
+
+        return result
+
+    def fix_this_shit(self):
+        final = self.class_net_cache
+        for idx, cache in enumerate(self.class_net_cache):
+            for idx, parent_cache in enumerate(self.class_net_cache):
+                if cache.parent_id == parent_cache.cache_id:
+                    parent_idx = idx
+                    parent = parent_cache
+                    break
+
+            if parent:
+                # Update net cache object with parent
+                cache.parent = parent
+                final[idx] = cache
+                # Update parent children
+                parent.children.append(cache)
+                final[parent_idx] = parent
+            else:
+                cache.root = True
+                final[idx] = cache
+
+        self.class_net_cache = final
 
 
 # Footer: 1686143 (1346610a...)
@@ -201,48 +234,57 @@ def format_class_net_cache(
         objects (values).
 
     """
+    log.debug("Formatting class net cache.")
     # Where our formatted entries will go
     formatted: dict[int, dict[int, int]] = {}
 
     # Iterate through the unformatted class net cache
-    for idx, _cache in enumerate(class_net_cache):
-        log.debug(f"idx: {idx}")
-
+    for idx, cache in enumerate(class_net_cache):
         # Get the class object where index==object_id
+        log.debug(f"Looking up class idx: {idx}")
         class_object: FooterClass = classes[idx]
+        class_object_id = class_object.object_id
         log.debug(f"Class Object: {class_object.class_name}")
+        log.debug(f"Class ID: {class_object_id}")
 
         # Get the class object's parent; Core.Object has no parent
         parent_name: str | None = object_parent_m.get(class_object.class_name)
-        parent_obj: FooterClass | None = next(
-            (x for x in classes if x.class_name == parent_name), None
-        )
         log.debug(f"Parent: {parent_name}")
-        log.debug(f"Parent: {parent_obj}")
 
         # Iteratively get parents (starting with `parent`) until a
         # corresponding entry is found in the formatted class net cache.
         # If parent is None (i.e. class_object is Core.Object), then
         # this loop won't run in the first place.
-        # while parent_name:
-        #     parent_object_id: int | None = parent_obj.object_id
-        #     parent_properties: dict[int, int] | None = formatted.get(parent_object_id)
-        #     log.debug(f"Parent ID: {parent_object_id}")
-        #     log.debug(f"Parent Properties: {parent_properties}")
-        #     if parent_properties is not None:
-        #         # properties + parent_properties (no overwrite)
-        #         final_properties: dict[int, list[ClassNetCacheProperty]] = {
-        #             **parent_properties,
-        #             **cache.properties,
-        #         }
-        #         break
-        #     # `parent_properties` is None
-        #     # set `parent` to the next parent
-        #     parent = object_parent_m.get(parent)
-        # else:  # No parent entry was found
-        #     final_properties: list[ClassNetCacheProperty] = cache.properties
+        while parent_name:
+            log.debug(f"\tProcessing parent: {parent_name}")
+            parent_obj = next((c for c in classes if c.class_name == parent_name))
+            parent_object_id = parent_obj.object_id
+            parent_properties: dict[int, int] | None = formatted.get(parent_object_id)
+            log.debug(f"\tParent ID: {parent_object_id}")
+            log.debug(f"\tParent Properties: {parent_properties}")
+            if parent_properties:
+                # properties + parent_properties (no overwrite)
+                log.debug("Processing final list")
+                log.debug(f"Cache Properties: {cache.properties}")
+                final_properties: dict[int, int] = {
+                    parent_properties,
+                    cache.properties,
+                }
+                break
+            # `parent_properties` is None
+            # set `parent` to the next parent
+            parent_name = object_parent_m.get(parent_name)
+        else:  # No parent entry was found
+            log.debug("\tNo parent setting up final property list.")
+            final_properties: list[ClassNetCacheProperty] = cache.properties
 
-        # # Add new entry to `formatted`
-        # formatted[idx] = final_properties
+        # Add new entry to `formatted`
+        formatted[class_object.object_id] = final_properties
+        from pprint import pformat
 
+        log.debug(f"FINAL FORMATTED:\n\n{pformat(formatted)}")
+
+    log.debug("Finished formatting...")
+    # from pprint import pformat
+    # log.debug(f"FINAL FORMATTED:\n\n{pformat(formatted)}")
     return formatted

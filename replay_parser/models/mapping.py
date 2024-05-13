@@ -1,10 +1,8 @@
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Any, TypeAlias
+from typing import Any
 
-Bool_1: TypeAlias = bool
-Bool_8: TypeAlias = bool
-UInt_64: TypeAlias = int
+from replay_parser.type import UInt_64
 
 
 class SpawnTrajectory(Enum):

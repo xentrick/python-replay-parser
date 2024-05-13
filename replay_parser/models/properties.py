@@ -44,7 +44,7 @@ class Property:
     name: str
     type: PropertyType
     unknown_001: int
-    value: str | int | list
+    value: PropertyValue
 
     @classmethod
     def parse(cls, fd: PathLike, version: "Version"):
