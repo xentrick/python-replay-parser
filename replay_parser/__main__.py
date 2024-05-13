@@ -56,7 +56,7 @@ if __name__ == "__main__":
     with open(replay_name, "rb") as replay_file:
         try:
             rparser = ReplayParser(debug=debug)
-            results = rparser.parse(replay_file, replay_name)
+            results = rparser.parse(replay_file, net_stream=argv.netstream)
         except IOError as e:
             print(e)
         except struct.error as e:

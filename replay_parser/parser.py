@@ -66,7 +66,7 @@ class ReplayParser:
 
         fd.close()
 
-        return models.Replay(header=hdr, network_stream=network_stream, footer=footer)
+        return models.Replay(header=hdr, netstream=network_stream, footer=footer)
 
     def parse_net_stream(
         self, fd: PathLike, header: models.Header, footer: models.Footer
