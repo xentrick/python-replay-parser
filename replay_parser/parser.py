@@ -22,7 +22,7 @@ class ReplayParser:
         net_stream: bool = False,
     ) -> models.Replay:
         # Work out what type of file we're dealing with.
-        if hasattr(replay_file, "read"):
+        if isinstance(replay_file, bytes) or hasattr(replay_file, "read"):
             fd = replay_file
         elif hasattr(replay_file, "file"):
             fd = open(replay_file.file.path, "rb")

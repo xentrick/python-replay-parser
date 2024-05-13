@@ -5,9 +5,9 @@ from setuptools import find_packages, setup
 from replay_parser import VERSION
 
 setup(
-    name="rocket-league-replay-parser",
+    name="replay-parser",
     version=".".join(str(n) for n in VERSION),
-    url="https://github.com/xentrick/rocket-league-replay-parser",
+    url="https://github.com/xentrick/python-replay-parser",
     author="Nick Mavis",
     author_email="itsnick@gmail.com",
     packages=find_packages(),

@@ -1,0 +1,10 @@
+Metadata-Version: 2.1
+Name: replay-parser
+Version: 1.0.0
+Summary: Parser for Rocket League replay files.
+Home-page: https://github.com/xentrick/python-replay-parser
+Author: Nick Mavis
+Author-email: itsnick@gmail.com
+Classifier: Programming Language :: Python :: 3.9
+Classifier: License :: OSI Approved :: GNU General Public License (GPL)
+License-File: LICENSE
