@@ -15,6 +15,8 @@ class ReplayParser:
         if self.debug:
             log.setLevel(logging.DEBUG)
             log.debug("Debug mode: ON")
+        else:
+            log.setLevel(logging.INFO)
 
     def parse(
         self,

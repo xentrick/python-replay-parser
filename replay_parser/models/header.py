@@ -66,6 +66,9 @@ class Header:
     keyframes: list[KeyFrame]
     network_stream_length: int
 
+    def get_property(self, name: str) -> PropertyValue | None:
+        return self.properties.get(name)
+
     @property
     def build_version(self) -> str | None:
         bv = self.properties.get("BuildVersion")
@@ -88,7 +91,7 @@ class Header:
         log.debug(f"\tReplayType: {rtype}")
 
         properties = read_properties(fd, version=version)
-        log.debug(json.dumps(properties, indent=4))
+        log.debug(f"Properties:\n{json.dumps(properties, indent=4)}")
 
         # TODO: Extract BuildVersion
 
