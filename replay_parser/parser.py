@@ -2,9 +2,11 @@ import io
 import logging
 import os
 
+# from replay_parser.type import PathLike
+from typing import IO
+
 from replay_parser import models
 from replay_parser.exceptions import CorruptReplay
-from replay_parser.type import PathLike
 
 log = logging.getLogger(__name__)
 
@@ -20,16 +22,19 @@ class ReplayParser:
 
     def parse(
         self,
-        replay_file: PathLike,
+        replay_file: str | bytes | os.PathLike | IO[bytes],
         net_stream: bool = False,
     ) -> models.Replay:
         # Work out what type of file we're dealing with.
-        if isinstance(replay_file, bytes) or hasattr(replay_file, "read"):
+        fd: IO[bytes]
+        if isinstance(replay_file, bytes):
+            fd = io.BytesIO(replay_file)
+        elif isinstance(replay_file, (str, os.PathLike)):
+            fd = open(replay_file, "rb")
+        elif hasattr(replay_file, "read"):
             fd = replay_file
         elif hasattr(replay_file, "file"):
             fd = open(replay_file.file.path, "rb")
-        elif isinstance(replay_file, str):
-            fd = open(replay_file, "rb")
         else:
             raise TypeError("Unable to determine file type.")
 
@@ -71,7 +76,7 @@ class ReplayParser:
         return models.Replay(header=hdr, netstream=network_stream, footer=footer)
 
     def parse_net_stream(
-        self, fd: PathLike, header: models.Header, footer: models.Footer
+        self, fd: IO[bytes], header: models.Header, footer: models.Footer
     ):
         # f = models.Frame.parse(fd)
         # from pprint import pformat

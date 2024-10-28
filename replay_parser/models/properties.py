@@ -23,6 +23,8 @@ def read_properties(replay_file, version: "Version"):
 
         if prop:
             results[prop.name] = prop.value
+            # if prop.name == "None":
+            #     break
         else:
             # log.debug(f"Property List:\n\n{json.dumps(results, indent=4)}")
             return results
@@ -37,14 +39,25 @@ class PropertyType(StrEnum):
     Byte = "ByteProperty"
     QWord = "QWordProperty"
     Bool = "BoolProperty"
+    Struct = "StructProperty"
 
 
 @dataclass
 class Property:
     name: str
     type: PropertyType
-    unknown_001: int
-    value: PropertyValue
+    length: int
+    idx: int
+    value: int | str | float | list | bool
+    struct_name: str | None = None
+
+    def __str__(self) -> str:
+        return f"""Name: {self.name}
+Type: {self.type}
+Length: {self.length}
+Index: {self.idx}
+StructName: {self.struct_name}
+Value: {self.value}"""
 
     @classmethod
     def parse(cls, fd: PathLike, version: "Version"):
@@ -53,16 +66,26 @@ class Property:
         # len = util.read_integer(fd)
         # log.debug(f"\t\tplen: {len}")
 
+        # Property Name
         name = util.read_string8(fd)
         log.debug(f"\t\tName: {name}")
         if name in ("None", "\0\0\0None"):
-            return None
+            log.debug("NoneType Property Found. Ending parse.")
+            return
 
+        # Property Type
         ptype = PropertyType(util.read_string8(fd))
-        log.debug(f"\t\tptype: {ptype}")
+        log.debug(f"\t\tpType: {ptype}")
 
-        unk = util.read_integer(fd, 8)
-        # log.debug(f"\t\tUnk: {unk}")
+        # Data Length
+        length = util.read_integer(fd, 4)
+        log.debug(f"\t\tLength: {length}")
+
+        # Array Index
+        idx = util.read_integer(fd, 4)
+        log.debug(f"\t\tIndex: {idx}")
+
+        structName = None
 
         match ptype:
             case PropertyType.Int:
@@ -79,11 +102,18 @@ class Property:
                 value = []
                 for _ in range(alen):
                     proplist = read_properties(fd, version)
+                    log.debug(f"ArrayProperty Value: {proplist}")
                     value.append(proplist)
-                log.debug(f"ArrayProperty Values:\n\n{json.dumps(value, indent=4)}")
+                log.debug(
+                    f"ArrayProperty Values:\n\n{json.dumps(value, indent=4, cls=PropertyEncoder)}"
+                )
             case PropertyType.Byte:
                 key = util.read_string8(fd)
-                if key in ("OnlinePlatform_Steam", "OnlinePlatform_PS4"):
+                log.debug(f"ByteProperty->Key: {key}")
+                if key == "None":
+                    # Who knows?
+                    value = util.read_byte(fd)
+                elif key in ("OnlinePlatform_Steam", "OnlinePlatform_PS4"):
                     value = None
                 else:
                     value = util.read_string8(fd)
@@ -98,7 +128,29 @@ class Property:
                     value = util.read_integer(fd, 4)
                 else:
                     value = bool(util.read_integer(fd, 1))
+            case PropertyType.Struct:
+                log.debug("StructProperty found")
+                structName = util.read_string8(fd)
+                log.debug(f"Struct Name: {structName}")
 
-        # log.debug(f"\t\tValue: {value}")
+                # Value is a list of struct fields
+                value = []
+                while True:
+                    struct = Property.parse(fd, version)
+                    if not struct:
+                        log.debug("Ending StuctProperty parse.")
+                        break
+                    value.append(struct)
 
-        return cls(name, ptype, unk, value)
+                # value = read_properties(fd, version)
+                # value = util.read_string8(fd)
+                # log.debug(f"value: {value}")
+
+        log.debug(f"\t\tValue: {value}")
+
+        return cls(name, ptype, length, idx, value, structName)
+
+
+class PropertyEncoder(json.JSONEncoder):
+    def default(self, o):
+        return o.__dict__

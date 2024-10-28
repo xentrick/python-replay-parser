@@ -1,10 +1,9 @@
 import logging
 from dataclasses import dataclass
-from typing import Optional
+from typing import IO, Optional
 
 from replay_parser import util
 from replay_parser.models.mapping import RELATIONS
-from replay_parser.type import PathLike
 
 log = logging.getLogger(__name__)
 
@@ -37,7 +36,7 @@ class DebugString:
     text: str
 
     @classmethod
-    def parse(cls, fd: PathLike) -> "DebugString":
+    def parse(cls, fd: IO[bytes]) -> "DebugString":
         frame = util.read_integer(fd, 4)
         user = util.read_string16(fd)
         text = util.read_string16(fd)
@@ -50,7 +49,7 @@ class TickMark:
     frame: int
 
     @classmethod
-    def parse(cls, fd: PathLike) -> "TickMark":
+    def parse(cls, fd: IO[bytes]) -> "TickMark":
         desc = util.read_string16(fd)
         frame = util.read_integer(fd, 4)
         return cls(desc, frame)
@@ -62,7 +61,7 @@ class FooterClass:
     object_id: int
 
     @classmethod
-    def parse(cls, fd: PathLike) -> "FooterClass":
+    def parse(cls, fd: IO[bytes]) -> "FooterClass":
         name = util.read_string8(fd)
         obj_id = util.read_integer(fd, 4)
         return cls(name, obj_id)
@@ -74,7 +73,7 @@ class ClassNetCacheProperty:
     parent_id: int
 
     @classmethod
-    def parse(cls, fd: PathLike) -> "ClassNetCacheProperty":
+    def parse(cls, fd: IO[bytes]) -> "ClassNetCacheProperty":
         obj_id = util.read_integer(fd, 4)
         parent_id = util.read_integer(fd, 4)
         return cls(obj_id, parent_id)
@@ -95,7 +94,7 @@ class ClassNetCacheEntry:
         return len(self.properties)
 
     @classmethod
-    def parse(cls, fd: PathLike) -> "ClassNetCacheEntry":
+    def parse(cls, fd: IO[bytes]) -> "ClassNetCacheEntry":
         obj_id = util.read_integer(fd, 4)
         parent_id = util.read_integer(fd, 4)
         cache_id = util.read_integer(fd, 4)
@@ -122,7 +121,7 @@ class Footer:
     class_net_cache: list[ClassNetCacheEntry]
 
     @classmethod
-    def parse(cls, fd: PathLike) -> "Footer":
+    def parse(cls, fd: IO[bytes]) -> "Footer":
         log.debug("Footer Structure")
 
         dbg_strings = []
@@ -203,7 +202,10 @@ class Footer:
                 cache.parent = parent
                 final[idx] = cache
                 # Update parent children
-                parent.children.append(cache)
+                if not parent.children:
+                    parent.children = [cache]
+                else:
+                    parent.children.append(cache)
                 final[parent_idx] = parent
             else:
                 cache.root = True

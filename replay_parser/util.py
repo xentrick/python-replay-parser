@@ -89,7 +89,7 @@ def manual_parse(self, results, replay_file, filename):
 
 def debug_bits(replay_file, labels=None):
     byte = replay_file.read(1)
-    output = ()
+    output: tuple = ()
 
     for index in range(8):
         i, j = divmod(index, 8)
@@ -131,6 +131,11 @@ def pretty_byte_string(bytes_read):
 
 def pretty_bytes(bytes_read):
     return " ".join([f"{x:02x}" for x in bytes_read])
+
+
+def read_byte(replay_file):
+    byte = replay_file.read(1)
+    return int.from_bytes(byte)
 
 
 def read_integer(replay_file, length=4):

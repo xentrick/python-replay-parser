@@ -2,7 +2,6 @@
 
 import argparse
 import logging
-import struct
 import sys
 from pathlib import Path
 
@@ -54,12 +53,14 @@ if __name__ == "__main__":
         sys.exit(f"{replay_name} does not exist...")
 
     with open(replay_name, "rb") as replay_file:
-        try:
-            rparser = ReplayParser(debug=debug)
-            results = rparser.parse(replay_file, net_stream=argv.netstream)
-        except IOError as e:
-            print(e)
-        except struct.error as e:
-            print(e)
-        except Exception as e:
-            print(e)
+        rparser = ReplayParser(debug=debug)
+        results = rparser.parse(replay_file, net_stream=argv.netstream)
+        # try:
+        #     rparser = ReplayParser(debug=debug)
+        #     results = rparser.parse(replay_file, net_stream=argv.netstream)
+        # except IOError as e:
+        #     print(e)
+        # except struct.error as e:
+        #     print(e)
+        # except Exception as e:
+        #     print(e)

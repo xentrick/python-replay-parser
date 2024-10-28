@@ -1,10 +1,10 @@
 import json
 import logging
 from dataclasses import dataclass
+from typing import IO
 
 from replay_parser import util
-from replay_parser.models.properties import PropertyValue, read_properties
-from replay_parser.type import PathLike
+from replay_parser.models.properties import PropertyEncoder, read_properties
 
 log = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ class KeyFrame:
     file_position: int
 
     @classmethod
-    def parse(cls, fd: PathLike):
+    def parse(cls, fd: IO[bytes]):
         time = util.read_float(fd, 4)
         frame = util.read_integer(fd, 4)
         file_pos = util.read_integer(fd, 4)
@@ -36,7 +36,7 @@ class Version:
     net_version: int
 
     @classmethod
-    def parse(cls, fd: PathLike) -> "Version":
+    def parse(cls, fd: IO[bytes]) -> "Version":
         engine = util.read_integer(fd, 4)
         licensee = util.read_integer(fd, 4)
 
@@ -59,23 +59,25 @@ class Header:
     crc: int
     version: Version
     type: str
-    properties: dict[str, PropertyValue]
+    properties: dict[str, int | str | float | list | bool]
     eof_length: int
     eof_crc: int
     levels: list[str]
     keyframes: list[KeyFrame]
     network_stream_length: int
 
-    def get_property(self, name: str) -> PropertyValue | None:
+    def get_property(self, name: str) -> int | str | float | list | bool | None:
         return self.properties.get(name)
 
     @property
     def build_version(self) -> str | None:
         bv = self.properties.get("BuildVersion")
+        if not isinstance(bv, str):
+            return None
         return bv
 
     @classmethod
-    def parse(cls, fd: PathLike) -> "Header":
+    def parse(cls, fd: IO[bytes]) -> "Header":
         log.debug("Header Structure")
 
         hdrlen = util.read_integer(fd, 4)
@@ -91,7 +93,9 @@ class Header:
         log.debug(f"\tReplayType: {rtype}")
 
         properties = read_properties(fd, version=version)
-        log.debug(f"Properties:\n{json.dumps(properties, indent=4)}")
+        log.debug(
+            f"Properties:\n{json.dumps(properties, indent=4, cls=PropertyEncoder)}"
+        )
 
         # TODO: Extract BuildVersion
 
